@@ -89,7 +89,7 @@ const CvPoint2D32f* locate_puzzle(IplImage *in) {
             slope = dy / dx;
         }
 
-        cvLine(in, line[0], line[1], CV_RGB(255, 255, 255), 1);
+        //cvLine(in, line[0], line[1], CV_RGB(255, 255, 255), 1);
         if (abs(slope - most_horizontal) <= 1) {
             if ((top == -1) || (line[1].y < ((CvPoint*)cvGetSeqElem(lines,top))[1].y)) {
                 top = i;
