@@ -1,0 +1,112 @@
+- image: IMG_0661.JPG
+  blob_area: [ [ 6, 367 ], [ 1105, 1468 ] ]
+  failing: cannot find left border
+- image: IMG_0675.JPG
+  blob_area: [ [ 16, 413 ], [ 1066, 1487 ] ] 
+  puzzle_location: [ [ 51, 413 ], [ 1063, 431 ], [ 1044, 1489 ], [ 33, 1348 ] ]
+  failing: cannot find left border
+- image: IMG_0662.JPG
+  blob_area: [ [ 23, 378 ], [ 1125, 1487 ] ] 
+  failing: cannot find left border
+- image: IMG_0667.JPG
+  failing: extremely blurry and dim
+- image: IMG_0669.JPG
+  failing: extremely blurry and dim
+
+# working
+- image: IMG_0672.JPG
+  blob_area: [ [ 69, 361 ], [ 1178, 1485 ] ]
+  puzzle_location: [ [ 86, 384 ], [ 1094, 348 ], [ 1173, 1475 ], [ 67, 1475 ] ]
+- image: IMG_0670.JPG
+  blob_area: [ [ 68, 382 ], [ 1181, 1508 ] ]
+  puzzle_location: [ [ 85, 418 ], [ 1100, 383 ], [ 1179, 1498 ], [ 67, 1478 ] ]
+- image: IMG_0664.JPG
+  blob_area: [ [ 100, 319 ], [ 1179, 1430 ] ]
+  puzzle_location: [ [ 109, 370 ], [ 1085, 319 ], [ 1180, 1402 ], [ 109, 1402 ] ]
+- image: IMG_0648.JPG
+  blob_area: [ [ 109, 264 ], [ 1200, 1422 ] ]
+  puzzle_location: [ [ 114, 353 ], [ 1141, 262 ], [ 1201, 1411 ], [ 114, 1411 ] ]
+- image: IMG_0666.JPG
+  blob_area: [ [ 65, 343 ], [ 1185, 1486 ] ]
+  puzzle_location: [ [ 104, 376 ], [ 1118, 341 ], [ 1178, 1467 ], [ 67, 1428 ] ]
+- image: IMG_0651.JPG
+  blob_area: [ [ 156, 391 ], [ 1200, 1454 ] ]
+  puzzle_location: [ [ 176, 420 ], [ 1162, 386 ], [ 1199, 1450 ], [ 158, 1431 ] ]
+- image: IMG_0674.JPG
+  blob_area: [ [ 98, 308 ], [ 1200, 1439 ] ]
+  puzzle_location: [ [ 118, 342 ], [ 1127, 307 ], [ 1206, 1434 ], [ 99, 1415 ] ]
+- image: IMG_0643.JPG
+  blob_area: [ [ 36, 419 ], [ 1046, 1460 ] ]
+  puzzle_location: [ [ 90, 426 ], [ 1038, 426 ], [ 1038, 1452 ], [ 37, 1417 ] ]
+- image: IMG_0646.JPG
+  blob_area: [ [ 139, 372 ], [ 1172, 1453 ] ]
+  puzzle_location: [ [ 133, 535 ], [ 981, 370 ], [ 1170, 1340 ], [ 229, 1455 ] ]
+- image: IMG_0652.JPG
+  blob_area: [ [ 55, 488 ], [ 1005, 1451 ] ]
+  puzzle_location: [ [ 162, 489 ], [ 1005, 504 ], [ 971, 1456 ], [ 54, 1359 ] ]
+- image: IMG_0660.JPG
+  blob_area: [ [ 103, 452 ], [ 1049, 1446 ] ]
+  puzzle_location: [ [ 140, 457 ], [ 1046, 473 ], [ 1028, 1444 ], [ 109, 1348 ] ]
+- image: IMG_0659.JPG
+  blob_area: [ [ 76, 284 ], [ 1183, 1448 ] ] 
+  puzzle_location: [ [ 74, 363 ], [ 1133, 289 ], [ 1173, 1436 ], [ 92, 1380 ] ]
+- image: IMG_0657.JPG
+  blob_area: [ [ 64, 317 ], [ 1195, 1454 ] ] 
+  puzzle_location: [ [ 63, 385 ], [ 1145, 327 ], [ 1185, 1445 ], [ 115, 1389 ] ]
+- image: IMG_0654.JPG
+  blob_area: [ [ 28, 394 ], [ 1055, 1417 ] ] 
+  puzzle_location: [ [ 194, 393 ], [ 1055, 453 ], [ 972, 1411 ], [ 35, 1297 ] ]
+- image: IMG_0655.JPG
+  blob_area: [ [ 104, 313 ], [ 1180, 1475 ] ]
+  puzzle_location: [ [ 109, 372 ], [ 1158, 317 ], [ 1178, 1468 ], [ 109, 1355 ] ]
+- image: IMG_0663.JPG
+  blob_area: [ [ 82, 317 ], [ 1157, 1421 ] ]
+  puzzle_location: [ [ 138, 366 ], [ 1150, 313 ], [ 1150, 1425 ], [ 86, 1369 ] ]
+- image: IMG_0673.JPG
+  blob_area: [ [ 39, 371 ], [ 1068, 1451 ] ]
+  puzzle_location: [ [ 105, 388 ], [ 1067, 371 ], [ 1048, 1449 ], [ 39, 1343 ] ]
+- image: IMG_0668.JPG
+  blob_area: [ [ 124, 393 ], [ 1181, 1466 ] ]
+  puzzle_location: [ [ 149, 411 ], [ 1117, 394 ], [ 1173, 1463 ], [ 132, 1427 ] ]
+- image: IMG_0650.JPG
+  blob_area: [ [ 13, 360 ], [ 1025, 1382 ] ]
+  puzzle_location: [ [ 154, 361 ], [ 1024, 417 ], [ 943, 1381 ], [ 16, 1253 ] ]
+- image: IMG_0642.JPG
+  blob_area: [ [ 165, 407 ], [ 1148, 1444 ] ]
+  puzzle_location: [ [ 214, 440 ], [ 1148, 408 ], [ 1141, 1443 ], [ 167, 1360 ] ]
+- image: IMG_0658.JPG
+  blob_area: [ [ 87, 428 ], [ 1077, 1451 ] ]
+  puzzle_location: [ [ 113, 439 ], [ 1072, 430 ], [ 1072, 1441 ], [ 87, 1389 ] ]
+- image: IMG_0677.JPG
+  blob_area: [ [ 44, 353 ], [ 1061, 1454 ] ]
+  puzzle_location: [ [ 107, 371 ], [ 1060, 361 ], [ 1042, 1434 ], [ 53, 1315 ] ]
+- image: IMG_0671.JPG
+  blob_area: [ [ 55, 416 ], [ 1108, 1521 ] ]
+  puzzle_location: [ [ 134, 416 ], [ 1108, 449 ], [ 1053, 1520 ], [ 55, 1382 ] ]
+- image: IMG_0665.JPG
+  blob_area: [ [ 103, 410 ], [ 1125, 1448 ] ]
+  puzzle_location: [ [ 216, 412 ], [ 1125, 443 ], [ 1073, 1443 ], [ 105, 1326 ] ]
+- image: IMG_0676.JPG
+  blob_area: [ [ 68, 295 ], [ 1172, 1430 ] ]
+  puzzle_location: [ [ 72, 329 ], [ 1085, 294 ], [ 1164, 1421 ], [ 72, 1421 ] ]
+- image: IMG_0653.JPG
+  blob_area: [ [ 106, 362 ], [ 1190, 1447 ] ]
+  puzzle_location: [ [ 137, 378 ], [ 1147, 361 ], [ 1185, 1438 ], [ 100, 1438 ] ]
+- image: IMG_0649.JPG
+  blob_area: [ [ 43, 318 ], [ 1150, 1465 ] ] 
+  puzzle_location: [ [ 76, 354 ], [ 1123, 318 ], [ 1142, 1456 ], [ 40, 1419 ] ]
+- image: IMG_0644.JPG
+  blob_area: [ [ 178, 435 ], [ 1191, 1455 ] ]
+  puzzle_location: [ [ 199, 467 ], [ 1133, 434 ], [ 1187, 1453 ], [ 181, 1434 ] ]
+- image: IMG_0645.JPG
+  blob_area: [ [ 115, 419 ], [ 1108, 1414 ] ] 
+  puzzle_location: [ [ 275, 419 ], [ 1106, 477 ], [ 1041, 1413 ], [ 119, 1299 ] ]
+- image: IMG_0646.JPG
+  blob_area: [ [ 139, 372 ], [ 1172, 1453 ] ]
+  puzzle_location: [ [ 133, 535 ], [ 981, 370 ], [ 1170, 1340 ], [ 229, 1455 ] ]
+- image: IMG_0647.JPG
+  blob_area: [ [ 60, 351 ], [ 1156, 1447 ] ]
+  puzzle_location: [ [ 174, 356 ], [ 1155, 390 ], [ 1100, 1447 ], [ 68, 1357 ] ]
+- image: IMG_0656.JPG
+  blob_area: [ [ 25, 252 ], [ 1065, 1388 ] ]
+  puzzle_location: [ [ 40, 326 ], [ 1055, 237 ], [ 1055, 1386 ], [ 22, 1332 ] ]
