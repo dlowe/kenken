@@ -1,0 +1,12 @@
+Work in progress.
+
+Description
+===========
+
+Similar to the iPhone "sudoku grab" app, my intention is to create a mobile
+app which can solve kenken puzzles input via the camera.
+
+Current state:
+ * given a crappy iphone snapshot of a kenken:
+  * locate the puzzle's corners
+  * perspective transform this image into a square
