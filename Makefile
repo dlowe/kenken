@@ -9,3 +9,8 @@ test_locate_puzzle: test_locate_puzzle.o kenken.o
 
 test: test_locate_puzzle
 	./test_locate_puzzle
+
+clean:
+	rm -f test_locate_puzzle
+	rm -f solve
+	rm -f kenken.o solve.o test_locate_puzzle.o
