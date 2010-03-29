@@ -38,7 +38,7 @@ int main (int argc, char** argv) {
     yaml_document_t document;
 
     yaml_parser_initialize(&parser);
-    FILE *input = fopen("test.yaml", "r");
+    FILE *input = fopen("test/test.yaml", "r");
     yaml_parser_set_input_file(&parser, input);
     yaml_parser_load(&parser, &document);
     yaml_parser_delete(&parser);
