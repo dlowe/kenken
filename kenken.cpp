@@ -174,8 +174,66 @@ IplImage *square_puzzle(IplImage *in, const CvPoint2D32f *location) {
     return warped_image;
 }
 
+int _compare_means(void *means, const void *guess_a, const void *guess_b) {
+    return ((unsigned long *)means)[*((unsigned short *)guess_a)] - ((unsigned long *)means)[*((unsigned short *)guess_b)];
+}
+
 unsigned short compute_puzzle_size(IplImage *puzzle) {
-    return 4;
+    IplImage *img = cvCreateImage(cvGetSize(puzzle), 8, 1);
+
+    // convert to grayscale
+    cvCvtColor(puzzle, img, CV_BGR2GRAY);
+
+    // threshold it
+    cvAdaptiveThreshold(img, img, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 59, 4);
+
+    // the logic here is to "rank" the possible sizes, by computing the average pixel intensity
+    // in the vicinity of where the lines should be.
+    unsigned long means[10];
+    const int fuzz = 8;
+    for (unsigned short guess_size = 3; guess_size <= 9; ++guess_size) {
+        for (unsigned short i = 1; i < guess_size; ++i) {
+            int center = i * (img->width / guess_size);
+            for (int x = 0; x < img->width; ++x) {
+                for (int y = center - fuzz; y < center + fuzz; ++y) {
+                    CvScalar s = cvGet2D(img, y, x);
+                    means[guess_size] += s.val[0];
+                }
+            }
+            for (int x = center - fuzz; x < center + fuzz; ++x) {
+                for (int y = 0; y < img->height; ++y) {
+                    CvScalar s = cvGet2D(img, y, x);
+                    means[guess_size] += s.val[0];
+                }
+            }
+        }
+        means[guess_size] /= (guess_size - 1);
+        //cvNamedWindow("thresh", 1);
+        //showSmaller(img, "thresh");
+    }
+
+    unsigned short guesses[] = { 3, 4, 5, 6, 7, 8, 9 };
+    qsort_r(guesses, 7, sizeof(unsigned short), (void *)means, _compare_means);
+
+    //for (int i = 0; i < 7; ++i) {
+        //printf("%d: %d\n", guesses[i], means[guesses[i]]);
+    //}
+
+    // evenly divisible sizes are easily confused. Err on the side of the larger size puzzle.
+    if ((guesses[0] == 4) && (guesses[1] == 8)) {
+        return 8;
+    }
+    if ((guesses[0] == 3) && (guesses[1] == 9)) {
+        return 9;
+    }
+    if ((guesses[0] == 3) && (guesses[1] == 6)) {
+        return 6;
+    }
+    //if ((guesses[0] == 3) && (guesses[2] == 9)) {
+        //return 9;
+    //}
+
+    return guesses[0];
 }
 
 void showSmaller (IplImage *in, char *window_name) {

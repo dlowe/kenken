@@ -248,14 +248,14 @@ int main (int argc, char** argv) {
                 horizontal[0].y = q;
                 horizontal[1].x = squared_puzzle->width;
                 horizontal[1].y = q;
-                cvLine(squared_puzzle, horizontal[0], horizontal[1], CV_RGB(0,255,0), 1);
+                cvLine(squared_puzzle, horizontal[0], horizontal[1], CV_RGB(0,255,0), 4);
 
                 CvPoint vertical[2];
                 vertical[0].x = q;
                 vertical[0].y = 0;
                 vertical[1].x = q;
                 vertical[1].y = squared_puzzle->height;
-                cvLine(squared_puzzle, vertical[0], vertical[1], CV_RGB(0,255,0), 1);
+                cvLine(squared_puzzle, vertical[0], vertical[1], CV_RGB(0,255,0), 4);
             }
 
             // actual
@@ -266,14 +266,14 @@ int main (int argc, char** argv) {
                 horizontal[0].y = q;
                 horizontal[1].x = squared_puzzle->width;
                 horizontal[1].y = q;
-                cvLine(squared_puzzle, horizontal[0], horizontal[1], CV_RGB(255,0,0), 1);
+                cvLine(squared_puzzle, horizontal[0], horizontal[1], CV_RGB(255,0,0), 4);
 
                 CvPoint vertical[2];
                 vertical[0].x = q;
                 vertical[0].y = 0;
                 vertical[1].x = q;
                 vertical[1].y = squared_puzzle->height;
-                cvLine(squared_puzzle, vertical[0], vertical[1], CV_RGB(255,0,0), 1);
+                cvLine(squared_puzzle, vertical[0], vertical[1], CV_RGB(255,0,0), 4);
             }
 
             showSmaller(squared_puzzle, "result");
