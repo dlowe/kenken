@@ -17,6 +17,7 @@
 - image: test/IMG_0672.JPG
   blob_area: [ [ 69, 361 ], [ 1178, 1485 ] ]
   puzzle_location: [ [ 86, 384 ], [ 1094, 348 ], [ 1173, 1475 ], [ 67, 1475 ] ]
+  size: 8
 - image: test/IMG_0670.JPG
   blob_area: [ [ 68, 382 ], [ 1181, 1508 ] ]
   puzzle_location: [ [ 85, 418 ], [ 1100, 383 ], [ 1179, 1498 ], [ 67, 1478 ] ]

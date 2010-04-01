@@ -8,10 +8,11 @@
 #define LOCATION_FUZZ 22
 
 typedef struct test_case_s {
-    char    *image;
-    CvPoint  puzzle_location[4];
-    CvPoint  blob_area[2];
-    bool     failing;
+    char           *image;
+    CvPoint         puzzle_location[4];
+    CvPoint         blob_area[2];
+    unsigned short  size;
+    bool            failing;
 } test_case_t;
 
 static unsigned int test_n = 1;
@@ -61,6 +62,7 @@ int main (int argc, char** argv) {
         test_case.puzzle_location[3] = cvPoint(0, 0);
         test_case.blob_area[0] = cvPoint(0, 0);
         test_case.blob_area[1] = cvPoint(0, 0);
+        test_case.size = 0;
 
         yaml_node_t *test_case_node = yaml_document_get_node(&document, *test_case_id);
         if (test_case_node->type != YAML_MAPPING_NODE) {
@@ -75,6 +77,9 @@ int main (int argc, char** argv) {
             }
             if (strcmp((const char *)key->data.scalar.value, "image") == 0) {
                 test_case.image = (char *)value->data.scalar.value;
+            }
+            if (strcmp((const char *)key->data.scalar.value, "size") == 0) {
+                test_case.size  = atoi((char *)value->data.scalar.value);
             }
             if (strcmp((const char *)key->data.scalar.value, "failing") == 0) {
                 test_case.failing = true;
@@ -221,6 +226,57 @@ int main (int argc, char** argv) {
             }
 
             showSmaller(color_image, "result");
+
+            cvWaitKey(0);
+            cvDestroyWindow("result");
+            exit(fail_n);
+        }
+
+        IplImage *squared_puzzle = square_puzzle(color_image, actual_location);
+
+        unsigned int actual_size = compute_puzzle_size(squared_puzzle);
+        ok(actual_size == test_case.size, "%s: size=%d, expecting %d", test_case.image, actual_size, test_case.size);
+
+        if (fail_n) {
+            cvNamedWindow("result", 1);
+
+            // expected
+            for (int i = 1; i < test_case.size; ++i) {
+                int q = i * (squared_puzzle->width / test_case.size);
+                CvPoint horizontal[2];
+                horizontal[0].x = 0;
+                horizontal[0].y = q;
+                horizontal[1].x = squared_puzzle->width;
+                horizontal[1].y = q;
+                cvLine(squared_puzzle, horizontal[0], horizontal[1], CV_RGB(0,255,0), 1);
+
+                CvPoint vertical[2];
+                vertical[0].x = q;
+                vertical[0].y = 0;
+                vertical[1].x = q;
+                vertical[1].y = squared_puzzle->height;
+                cvLine(squared_puzzle, vertical[0], vertical[1], CV_RGB(0,255,0), 1);
+            }
+
+            // actual
+            for (int i = 1; i < actual_size; ++i) {
+                int q = i * (squared_puzzle->width / actual_size);
+                CvPoint horizontal[2];
+                horizontal[0].x = 0;
+                horizontal[0].y = q;
+                horizontal[1].x = squared_puzzle->width;
+                horizontal[1].y = q;
+                cvLine(squared_puzzle, horizontal[0], horizontal[1], CV_RGB(255,0,0), 1);
+
+                CvPoint vertical[2];
+                vertical[0].x = q;
+                vertical[0].y = 0;
+                vertical[1].x = q;
+                vertical[1].y = squared_puzzle->height;
+                cvLine(squared_puzzle, vertical[0], vertical[1], CV_RGB(255,0,0), 1);
+            }
+
+            showSmaller(squared_puzzle, "result");
 
             cvWaitKey(0);
             cvDestroyWindow("result");

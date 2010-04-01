@@ -9,4 +9,6 @@ const CvPoint2D32f* locate_puzzle(IplImage *in);
 
 IplImage *square_puzzle(IplImage *in, const CvPoint2D32f *location);
 
+unsigned short compute_puzzle_size(IplImage *puzzle);
+
 void showSmaller (IplImage *in, char *window_name);

@@ -174,6 +174,10 @@ IplImage *square_puzzle(IplImage *in, const CvPoint2D32f *location) {
     return warped_image;
 }
 
+unsigned short compute_puzzle_size(IplImage *puzzle) {
+    return 4;
+}
+
 void showSmaller (IplImage *in, char *window_name) {
     IplImage *smaller = cvCreateImage(cvSize(in->width / 2, in->height / 2), 8, in->nChannels);
     cvResize(in, smaller, CV_INTER_LINEAR);

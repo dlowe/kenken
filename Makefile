@@ -1,6 +1,8 @@
 CPPFLAGS := -I/usr/local/include/opencv
 CPP := g++
 
+.PHONY: test
+
 solve: kenken.o solve.o
 	$(CPP) $(CPPFLAGS) kenken.o solve.o -lm -lcv -lhighgui -lcxcore -lblob -o $@
 
