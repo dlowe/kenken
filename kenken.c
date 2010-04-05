@@ -182,6 +182,7 @@ unsigned short compute_puzzle_size(IplImage *puzzle) {
     unsigned long means[10];
     const int fuzz = 8;
     for (unsigned short guess_size = 3; guess_size <= 9; ++guess_size) {
+        means[guess_size] = 0;
         for (unsigned short i = 1; i < guess_size; ++i) {
             int center = i * (img->width / guess_size);
             for (int x = 0; x < img->width; ++x) {
@@ -206,7 +207,7 @@ unsigned short compute_puzzle_size(IplImage *puzzle) {
     qsort_r(guesses, 7, sizeof(unsigned short), (void *)means, _compare_means);
 
     //for (int i = 0; i < 7; ++i) {
-        //printf("%d: %d\n", guesses[i], means[guesses[i]]);
+        //printf("%d: %lu\n", guesses[i], means[guesses[i]]);
     //}
 
     // evenly divisible sizes are easily confused. Err on the side of the larger size puzzle.

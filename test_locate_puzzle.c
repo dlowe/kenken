@@ -1,6 +1,5 @@
 #include <stdarg.h>
 
-#include "c_blob.h"
 #include "cv.h"
 #include "highgui.h"
 #include "kenken.h"
@@ -180,10 +179,10 @@ int main (int argc, char** argv) {
         IplImage *color_image = cvLoadImage(test_case.image, 1);
         c_blob *blob = _locate_puzzle_blob(color_image);
 
-        ok(abs(c_blob_minx(blob) - test_case.blob_area[0].x) < BLOB_FUZZ, "%s: blob top/left: x=%.0f, expecting %d", test_case.image, c_blob_minx(blob), test_case.blob_area[0].x);
-        ok(abs(c_blob_miny(blob) - test_case.blob_area[0].y) < BLOB_FUZZ, "%s: blob top/left: y=%.0f, expecting %d", test_case.image, c_blob_miny(blob), test_case.blob_area[0].y);
-        ok(abs(c_blob_maxx(blob) - test_case.blob_area[1].x) < BLOB_FUZZ, "%s: blob bottom/right: x=%.0f, expecting %d", test_case.image, c_blob_maxx(blob), test_case.blob_area[1].x);
-        ok(abs(c_blob_maxy(blob) - test_case.blob_area[1].y) < BLOB_FUZZ, "%s: blob bottom/right: y=%.0f, expecting %d", test_case.image, c_blob_maxy(blob), test_case.blob_area[1].y);
+        ok(abs(c_blob_minx(blob) - test_case.blob_area[0].x) < BLOB_FUZZ, "%s: blob top/left: x=%d, expecting %d", test_case.image, c_blob_minx(blob), test_case.blob_area[0].x);
+        ok(abs(c_blob_miny(blob) - test_case.blob_area[0].y) < BLOB_FUZZ, "%s: blob top/left: y=%d, expecting %d", test_case.image, c_blob_miny(blob), test_case.blob_area[0].y);
+        ok(abs(c_blob_maxx(blob) - test_case.blob_area[1].x) < BLOB_FUZZ, "%s: blob bottom/right: x=%d, expecting %d", test_case.image, c_blob_maxx(blob), test_case.blob_area[1].x);
+        ok(abs(c_blob_maxy(blob) - test_case.blob_area[1].y) < BLOB_FUZZ, "%s: blob bottom/right: y=%d, expecting %d", test_case.image, c_blob_maxy(blob), test_case.blob_area[1].y);
 
         if (fail_n) {
             cvNamedWindow("result", 1);

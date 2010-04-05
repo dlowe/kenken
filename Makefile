@@ -1,4 +1,4 @@
-CFLAGS := -I/usr/local/include/opencv -std=c99 -Wall -pedantic
+CFLAGS := -isystem /usr/local/include/opencv -std=c99 -Wall -pedantic -Werror
 CC := gcc
 
 .PHONY: test all clean
@@ -10,7 +10,7 @@ OBJECTS := kenken.o c_blob.o
 all: test
 
 test_locate_puzzle: $(OBJECTS) test_locate_puzzle.o
-	gcc $(CFLAGS) $(OBJECTS) test_locate_puzzle.o -lm -lcv -lhighgui -lcxcore -lblob -lyaml -lstdc++ -o $@
+	$(CC) $(CFLAGS) $(OBJECTS) test_locate_puzzle.o -lm -lcv -lhighgui -lcxcore -lblob -lyaml -lstdc++ -o $@
 
 c_blob.o: c_blob.cpp c_blob.h
 	g++ -c -I/usr/local/include/opencv c_blob.cpp -o $@

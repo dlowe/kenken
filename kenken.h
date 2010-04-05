@@ -1,3 +1,6 @@
+#ifndef _KENKEN_H
+#define _KENKEN_H
+
 #include "cv.h"
 #include "highgui.h"
 #include "c_blob.h"
@@ -11,3 +14,5 @@ IplImage *square_puzzle(IplImage *in, const CvPoint2D32f *location);
 unsigned short compute_puzzle_size(IplImage *puzzle);
 
 void showSmaller (IplImage *in, char *window_name);
+
+#endif /* _KENKEN_H */
