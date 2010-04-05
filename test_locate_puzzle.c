@@ -14,6 +14,7 @@ typedef struct test_case_s {
     CvPoint         blob_area[2];
     unsigned short  size;
     unsigned short  failing;
+    char           *cages;
 } test_case_t;
 
 static unsigned int test_n = 1;
@@ -33,7 +34,42 @@ unsigned short ok (unsigned short condition, char *description, ...) {
     return condition;
 }
 
-extern void showSmaller (IplImage *in, char *window_name);
+void show_with_cages(IplImage *in, int actual_size, char *cages, char *window_name) {
+    IplImage *squared_puzzle = cvCreateImage(cvGetSize(in), 8, in->nChannels);
+    cvCopy(in, squared_puzzle, NULL);
+    IplImage *img = cvCreateImage(cvGetSize(squared_puzzle), 8, 1);
+    cvCvtColor(squared_puzzle, img, CV_BGR2GRAY);
+
+    int width_interval  = img->width / actual_size;
+    int height_interval = img->height / actual_size;
+    CvPoint top_left;
+    CvPoint bottom_right;
+    for (int x = 0; x < actual_size; ++x) {
+        top_left.x     = x * width_interval;
+        bottom_right.x = top_left.x + width_interval - 1;
+        for (int y = 0; y < actual_size; ++y) {
+            top_left.y     = y * height_interval;
+            bottom_right.y = top_left.y + height_interval - 1;
+
+            char c = cages[(y * actual_size) + x];
+
+            int red   = ((c % 3) == 0) ? (((c - 65) * 6) + 10) : 0;
+            int green = ((c % 3) == 1) ? (((c - 65) * 6) + 10) : 0;
+            int blue  = ((c % 3) == 2) ? (((c - 65) * 6) + 10): 0;
+
+            for (int px = top_left.x; px < bottom_right.x; ++px) {
+                for (int py = top_left.y; py < bottom_right.y; ++py) {
+                    CvScalar s = cvGet2D(img, py, px);
+                    if (s.val[0] > 20) {
+                        cvSet2D(squared_puzzle, py, px, CV_RGB(red, green, blue));
+                    }
+                }
+            }
+        }
+    }
+
+    showSmaller(squared_puzzle, window_name);
+}
 
 int main (int argc, char** argv) {
     yaml_parser_t parser;
@@ -64,6 +100,7 @@ int main (int argc, char** argv) {
         test_case.blob_area[0] = cvPoint(0, 0);
         test_case.blob_area[1] = cvPoint(0, 0);
         test_case.size = 0;
+        test_case.cages = NULL;
 
         yaml_node_t *test_case_node = yaml_document_get_node(&document, *test_case_id);
         if (test_case_node->type != YAML_MAPPING_NODE) {
@@ -78,6 +115,9 @@ int main (int argc, char** argv) {
             }
             if (strcmp((const char *)key->data.scalar.value, "image") == 0) {
                 test_case.image = (char *)value->data.scalar.value;
+            }
+            if (strcmp((const char *)key->data.scalar.value, "cages") == 0) {
+                test_case.cages = (char *)value->data.scalar.value;
             }
             if (strcmp((const char *)key->data.scalar.value, "size") == 0) {
                 test_case.size  = atoi((char *)value->data.scalar.value);
@@ -281,6 +321,24 @@ int main (int argc, char** argv) {
             cvWaitKey(0);
             cvDestroyWindow("result");
             exit(fail_n);
+        }
+
+        if (test_case.cages != NULL) {
+            char *actual_cages = compute_puzzle_cages(squared_puzzle, actual_size);
+            ok(strcmp(actual_cages, test_case.cages) == 0, "%s: cages=%s, expecting %s", test_case.image, actual_cages, test_case.cages);
+
+            if (fail_n) {
+                cvNamedWindow("expected", 1);
+                cvNamedWindow("actual", 1);
+
+                show_with_cages(squared_puzzle, actual_size, test_case.cages, "expected");
+                show_with_cages(squared_puzzle, actual_size, actual_cages, "actual");
+
+                cvWaitKey(0);
+                cvDestroyWindow("actual");
+                cvDestroyWindow("expected");
+                exit(fail_n);
+            }
         }
     }
 

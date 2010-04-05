@@ -13,6 +13,8 @@ IplImage *square_puzzle(IplImage *in, const CvPoint2D32f *location);
 
 unsigned short compute_puzzle_size(IplImage *puzzle);
 
+char *compute_puzzle_cages(IplImage *puzzle, unsigned short puzzle_size);
+
 void showSmaller (IplImage *in, char *window_name);
 
 #endif /* _KENKEN_H */

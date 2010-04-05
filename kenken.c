@@ -227,6 +227,18 @@ unsigned short compute_puzzle_size(IplImage *puzzle) {
     return guesses[0];
 }
 
+static char puzzle_cages[9 * 9 + 1];
+char *compute_puzzle_cages(IplImage *puzzle, unsigned short puzzle_size) {
+    int i = 0;
+    for (int x = 0; x < puzzle_size; ++x) {
+        for (int y = 0; y < puzzle_size; ++y) {
+            puzzle_cages[i++] = 'A';
+        }
+    }
+    puzzle_cages[i] = 0;
+    return puzzle_cages;
+}
+
 void showSmaller (IplImage *in, char *window_name) {
     IplImage *smaller = cvCreateImage(cvSize(in->width / 2, in->height / 2), 8, in->nChannels);
     cvResize(in, smaller, CV_INTER_LINEAR);

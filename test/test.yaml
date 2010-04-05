@@ -14,6 +14,11 @@
   failing: extremely blurry and dim
 
 # working
+- image: test/IMG_0647.JPG
+  blob_area: [ [ 60, 351 ], [ 1156, 1447 ] ]
+  puzzle_location: [ [ 174, 356 ], [ 1155, 390 ], [ 1100, 1447 ], [ 68, 1357 ] ]
+  size: 6
+  # cages: AABCCCDEEFGHIIFFGHIJJKKLMNNKOLMPPQQL
 - image: test/IMG_0657.JPG
   blob_area: [ [ 64, 317 ], [ 1195, 1454 ] ]
   puzzle_location: [ [ 63, 385 ], [ 1145, 327 ], [ 1185, 1445 ], [ 115, 1389 ] ]
@@ -133,10 +138,6 @@
 - image: test/IMG_0646.JPG
   blob_area: [ [ 139, 372 ], [ 1172, 1453 ] ]
   puzzle_location: [ [ 133, 535 ], [ 981, 370 ], [ 1170, 1340 ], [ 229, 1455 ] ]
-  size: 6
-- image: test/IMG_0647.JPG
-  blob_area: [ [ 60, 351 ], [ 1156, 1447 ] ]
-  puzzle_location: [ [ 174, 356 ], [ 1155, 390 ], [ 1100, 1447 ], [ 68, 1357 ] ]
   size: 6
 - image: test/IMG_0656.JPG
   blob_area: [ [ 25, 252 ], [ 1065, 1388 ] ]
