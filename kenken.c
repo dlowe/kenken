@@ -1,9 +1,8 @@
 #include "cv.h"
-#include "Blob.h"
-#include "BlobResult.h"
 #include "kenken.h"
+#include "c_blob.h"
 
-void _locate_puzzle_blob(IplImage *in, CBlob *currentBlob) {
+c_blob *_locate_puzzle_blob(IplImage *in) {
     IplImage *img = cvCreateImage(cvGetSize(in), 8, 1);
 
     // convert to grayscale
@@ -14,17 +13,9 @@ void _locate_puzzle_blob(IplImage *in, CBlob *currentBlob) {
     // cvNamedWindow("thresh", 1);
     // showSmaller(img, "thresh");
 
-    // find all blobs in the image
-    CBlobResult blobs;
-    blobs = CBlobResult(img, NULL, 0, true);
+    c_blob *blob = c_blob_get_biggest_ink_blob(img);
     cvReleaseImage(&img);
-
-    // only interested in blobs of ink (not paper)
-    // (recall that this is a binary image)
-    blobs.Filter(blobs, B_INCLUDE, CBlobGetMean(), B_EQUAL, 0);
-    blobs.GetNthBlob(CBlobGetArea(), 0, *currentBlob);
-
-    return;
+    return blob;
 }
 
 void intersect(CvPoint *a, CvPoint *b, CvPoint2D32f *i) {
@@ -39,12 +30,12 @@ void intersect(CvPoint *a, CvPoint *b, CvPoint2D32f *i) {
 }
 
 const CvPoint2D32f* locate_puzzle(IplImage *in) {
-    CBlob currentBlob;
-    _locate_puzzle_blob(in, &currentBlob);
+    c_blob *currentBlob = _locate_puzzle_blob(in);
 
     // draw the blob onto an otherwise blank image
     IplImage *hough_image = cvCreateImage(cvGetSize(in), 8, 1);
-    currentBlob.FillBlob(hough_image, CV_RGB(255, 255, 255));
+    c_blob_fill(currentBlob, hough_image);
+    c_blob_destroy(currentBlob);
 
     //cvNamedWindow("hough", 1);
     //showSmaller(hough_image, "hough");
@@ -55,7 +46,7 @@ const CvPoint2D32f* locate_puzzle(IplImage *in) {
 
     int minimum_line_length = in->width / 2;
     lines = cvHoughLines2(hough_image, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/90, 60, minimum_line_length, 40);
-    //cvReleaseImage( &hough_image );
+    cvReleaseImage(&hough_image);
 
     double most_horizontal = INFINITY;
     for (int i = 0; i < lines->total; ++i) {
@@ -83,7 +74,6 @@ const CvPoint2D32f* locate_puzzle(IplImage *in) {
         CvPoint* line = (CvPoint*)cvGetSeqElem(lines,i);
         double dx     = abs(line[1].x - line[0].x);
         double dy     = abs(line[1].y - line[0].y);
-        double length = sqrt(pow(dx, 2) + pow(dy, 2));
         double slope  = INFINITY;
         if (dx) {
             slope = dy / dx;
@@ -123,7 +113,7 @@ const CvPoint2D32f* locate_puzzle(IplImage *in) {
     //cvLine(in, right_line[0], right_line[1], CV_RGB(255, 0, 0), 1);
 
     CvPoint2D32f *coordinates;
-    coordinates = new CvPoint2D32f[4];
+    coordinates = malloc(sizeof(CvPoint2D32f) * 4);
 
     // top left
     intersect(top_line, left_line, &(coordinates[0]));

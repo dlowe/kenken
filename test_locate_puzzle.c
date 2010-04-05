@@ -1,8 +1,10 @@
+#include <stdarg.h>
+
+#include "c_blob.h"
 #include "cv.h"
 #include "highgui.h"
 #include "kenken.h"
 #include "yaml.h"
-#include "Blob.h"
 
 #define BLOB_FUZZ 33
 #define LOCATION_FUZZ 22
@@ -12,12 +14,12 @@ typedef struct test_case_s {
     CvPoint         puzzle_location[4];
     CvPoint         blob_area[2];
     unsigned short  size;
-    bool            failing;
+    unsigned short  failing;
 } test_case_t;
 
 static unsigned int test_n = 1;
 static unsigned int fail_n = 0;
-bool ok (bool condition, char *description, ...) {
+unsigned short ok (unsigned short condition, char *description, ...) {
     va_list args;
     char description_buffer[1000];
 
@@ -55,7 +57,7 @@ int main (int argc, char** argv) {
     for (yaml_node_item_t *test_case_id = n->data.sequence.items.start; test_case_id < n->data.sequence.items.top; ++test_case_id) {
         test_case_t  test_case;
         test_case.image = NULL;
-        test_case.failing = false;
+        test_case.failing = 0;
         test_case.puzzle_location[0] = cvPoint(0, 0);
         test_case.puzzle_location[1] = cvPoint(0, 0);
         test_case.puzzle_location[2] = cvPoint(0, 0);
@@ -82,7 +84,7 @@ int main (int argc, char** argv) {
                 test_case.size  = atoi((char *)value->data.scalar.value);
             }
             if (strcmp((const char *)key->data.scalar.value, "failing") == 0) {
-                test_case.failing = true;
+                test_case.failing = 1;
             }
             if (strcmp((const char *)key->data.scalar.value, "puzzle_location") == 0) {
                 if (value->type != YAML_SEQUENCE_NODE) {
@@ -176,22 +178,21 @@ int main (int argc, char** argv) {
         }
 
         IplImage *color_image = cvLoadImage(test_case.image, 1);
-        CBlob blob;
-        _locate_puzzle_blob(color_image, &blob);
+        c_blob *blob = _locate_puzzle_blob(color_image);
 
-        ok(abs(blob.MinX() - test_case.blob_area[0].x) < BLOB_FUZZ, "%s: blob top/left: x=%.0f, expecting %d", test_case.image, blob.MinX(), test_case.blob_area[0].x);
-        ok(abs(blob.MinY() - test_case.blob_area[0].y) < BLOB_FUZZ, "%s: blob top/left: y=%.0f, expecting %d", test_case.image, blob.MinY(), test_case.blob_area[0].y);
-        ok(abs(blob.MaxX() - test_case.blob_area[1].x) < BLOB_FUZZ, "%s: blob bottom/right: x=%.0f, expecting %d", test_case.image, blob.MaxX(), test_case.blob_area[1].x);
-        ok(abs(blob.MaxY() - test_case.blob_area[1].y) < BLOB_FUZZ, "%s: blob bottom/right: y=%.0f, expecting %d", test_case.image, blob.MaxY(), test_case.blob_area[1].y);
+        ok(abs(c_blob_minx(blob) - test_case.blob_area[0].x) < BLOB_FUZZ, "%s: blob top/left: x=%.0f, expecting %d", test_case.image, c_blob_minx(blob), test_case.blob_area[0].x);
+        ok(abs(c_blob_miny(blob) - test_case.blob_area[0].y) < BLOB_FUZZ, "%s: blob top/left: y=%.0f, expecting %d", test_case.image, c_blob_miny(blob), test_case.blob_area[0].y);
+        ok(abs(c_blob_maxx(blob) - test_case.blob_area[1].x) < BLOB_FUZZ, "%s: blob bottom/right: x=%.0f, expecting %d", test_case.image, c_blob_maxx(blob), test_case.blob_area[1].x);
+        ok(abs(c_blob_maxy(blob) - test_case.blob_area[1].y) < BLOB_FUZZ, "%s: blob bottom/right: y=%.0f, expecting %d", test_case.image, c_blob_maxy(blob), test_case.blob_area[1].y);
 
         if (fail_n) {
             cvNamedWindow("result", 1);
 
             // expected
-            cvRectangle(color_image, test_case.blob_area[0], test_case.blob_area[1], CV_RGB(0,255,0));
+            cvRectangle(color_image, test_case.blob_area[0], test_case.blob_area[1], CV_RGB(0,255,0), 1, 8, 0);
 
             // actual
-            blob.FillBlob(color_image, CV_RGB(255, 0, 0));
+            c_blob_fill(blob, color_image);
 
             showSmaller(color_image, "result");
             cvWaitKey(0);
@@ -212,17 +213,17 @@ int main (int argc, char** argv) {
             cvNamedWindow("result", 1);
 
             // expected
-            cvLine(color_image, test_case.puzzle_location[0], test_case.puzzle_location[1], CV_RGB(0,255,0), 1);
-            cvLine(color_image, test_case.puzzle_location[1], test_case.puzzle_location[2], CV_RGB(0,255,0), 1);
-            cvLine(color_image, test_case.puzzle_location[2], test_case.puzzle_location[3], CV_RGB(0,255,0), 1);
-            cvLine(color_image, test_case.puzzle_location[3], test_case.puzzle_location[0], CV_RGB(0,255,0), 1);
+            cvLine(color_image, test_case.puzzle_location[0], test_case.puzzle_location[1], CV_RGB(0,255,0), 1, 8, 0);
+            cvLine(color_image, test_case.puzzle_location[1], test_case.puzzle_location[2], CV_RGB(0,255,0), 1, 8, 0);
+            cvLine(color_image, test_case.puzzle_location[2], test_case.puzzle_location[3], CV_RGB(0,255,0), 1, 8, 0);
+            cvLine(color_image, test_case.puzzle_location[3], test_case.puzzle_location[0], CV_RGB(0,255,0), 1, 8, 0);
 
             if (actual_location != NULL) {
                 // actual
-                cvLine(color_image, cvPointFrom32f(actual_location[0]), cvPointFrom32f(actual_location[1]), CV_RGB(255,0,0), 1);
-                cvLine(color_image, cvPointFrom32f(actual_location[1]), cvPointFrom32f(actual_location[2]), CV_RGB(255,0,0), 1);
-                cvLine(color_image, cvPointFrom32f(actual_location[2]), cvPointFrom32f(actual_location[3]), CV_RGB(255,0,0), 1);
-                cvLine(color_image, cvPointFrom32f(actual_location[3]), cvPointFrom32f(actual_location[0]), CV_RGB(255,0,0), 1);
+                cvLine(color_image, cvPointFrom32f(actual_location[0]), cvPointFrom32f(actual_location[1]), CV_RGB(255,0,0), 1, 8, 0);
+                cvLine(color_image, cvPointFrom32f(actual_location[1]), cvPointFrom32f(actual_location[2]), CV_RGB(255,0,0), 1, 8, 0);
+                cvLine(color_image, cvPointFrom32f(actual_location[2]), cvPointFrom32f(actual_location[3]), CV_RGB(255,0,0), 1, 8, 0);
+                cvLine(color_image, cvPointFrom32f(actual_location[3]), cvPointFrom32f(actual_location[0]), CV_RGB(255,0,0), 1, 8, 0);
             }
 
             showSmaller(color_image, "result");
@@ -248,14 +249,14 @@ int main (int argc, char** argv) {
                 horizontal[0].y = q;
                 horizontal[1].x = squared_puzzle->width;
                 horizontal[1].y = q;
-                cvLine(squared_puzzle, horizontal[0], horizontal[1], CV_RGB(0,255,0), 4);
+                cvLine(squared_puzzle, horizontal[0], horizontal[1], CV_RGB(0,255,0), 4, 8, 0);
 
                 CvPoint vertical[2];
                 vertical[0].x = q;
                 vertical[0].y = 0;
                 vertical[1].x = q;
                 vertical[1].y = squared_puzzle->height;
-                cvLine(squared_puzzle, vertical[0], vertical[1], CV_RGB(0,255,0), 4);
+                cvLine(squared_puzzle, vertical[0], vertical[1], CV_RGB(0,255,0), 4, 8, 0);
             }
 
             // actual
@@ -266,14 +267,14 @@ int main (int argc, char** argv) {
                 horizontal[0].y = q;
                 horizontal[1].x = squared_puzzle->width;
                 horizontal[1].y = q;
-                cvLine(squared_puzzle, horizontal[0], horizontal[1], CV_RGB(255,0,0), 4);
+                cvLine(squared_puzzle, horizontal[0], horizontal[1], CV_RGB(255,0,0), 4, 8, 0);
 
                 CvPoint vertical[2];
                 vertical[0].x = q;
                 vertical[0].y = 0;
                 vertical[1].x = q;
                 vertical[1].y = squared_puzzle->height;
-                cvLine(squared_puzzle, vertical[0], vertical[1], CV_RGB(255,0,0), 4);
+                cvLine(squared_puzzle, vertical[0], vertical[1], CV_RGB(255,0,0), 4, 8, 0);
             }
 
             showSmaller(squared_puzzle, "result");
