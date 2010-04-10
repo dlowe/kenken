@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "cv.h"
 #include "kenken.h"
 #include "c_blob.h"
@@ -9,9 +11,21 @@ c_blob *_locate_puzzle_blob(IplImage *in) {
     cvCvtColor(in, img, CV_BGR2GRAY);
 
     // apply thresholding (converts it to a binary image)
-    cvAdaptiveThreshold(img, img, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 59, 12);
-    // cvNamedWindow("thresh", 1);
-    // showSmaller(img, "thresh");
+    long total = 0;
+    for (int x = 0; x < img->width; ++x) {
+        for (int y = 0; y < img->height; ++y) {
+            CvScalar s = cvGet2D(img, y, x);
+            total += s.val[0];
+        }
+    }
+    int mean_intensity = (int)(total / (img->width * img->height));
+    int constant_reduction = (int)(mean_intensity / 3.6 + 0.5);
+    //printf("total: %ld, mean: %d, reduction: %d\n", total, mean_intensity, constant_reduction);
+
+    // apply thresholding (converts it to a binary image)
+    cvAdaptiveThreshold(img, img, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 59, constant_reduction);
+    //cvNamedWindow("thresh", 1);
+    //showSmaller(img, "thresh");
 
     c_blob *blob = c_blob_get_biggest_ink_blob(img);
     cvReleaseImage(&img);
@@ -79,7 +93,7 @@ const CvPoint2D32f* locate_puzzle(IplImage *in) {
             slope = dy / dx;
         }
 
-        //cvLine(in, line[0], line[1], CV_RGB(255, 255, 255), 1);
+        //cvLine(in, line[0], line[1], CV_RGB(255, 255, 255), 1, 8, 0);
         if (abs(slope - most_horizontal) <= 1) {
             if ((top == -1) || (line[1].y < ((CvPoint*)cvGetSeqElem(lines,top))[1].y)) {
                 top = i;
@@ -211,18 +225,15 @@ unsigned short compute_puzzle_size(IplImage *puzzle) {
     //}
 
     // evenly divisible sizes are easily confused. Err on the side of the larger size puzzle.
-    if ((guesses[0] == 4) && (guesses[1] == 8)) {
+    if ((guesses[0] == 4) && (guesses[1] == 8) && (means[guesses[1]] - means[guesses[0]] < means[guesses[2]] - means[guesses[1]])) {
         return 8;
     }
-    if ((guesses[0] == 3) && (guesses[1] == 9)) {
+    if ((guesses[0] == 3) && (guesses[1] == 9) && (means[guesses[1]] - means[guesses[0]] < means[guesses[2]] - means[guesses[1]])) {
         return 9;
     }
-    if ((guesses[0] == 3) && (guesses[1] == 6)) {
+    if ((guesses[0] == 3) && (guesses[1] == 6) && (means[guesses[1]] - means[guesses[0]] < means[guesses[2]] - means[guesses[1]])) {
         return 6;
     }
-    //if ((guesses[0] == 3) && (guesses[2] == 9)) {
-        //return 9;
-    //}
 
     return guesses[0];
 }
