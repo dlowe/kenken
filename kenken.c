@@ -309,7 +309,7 @@ char *compute_puzzle_cages(IplImage *puzzle, unsigned short puzzle_size) {
                 for (int y = y_center - fuzz; y <= y_center + fuzz; ++y) {
                     CvScalar s = cvGet2D(threshold_image, y, x);
                     total += s.val[0];
-                    cvSet2D(threshold_image, y, x, CV_RGB(255, 255, 255));
+                    //cvSet2D(threshold_image, y, x, CV_RGB(255, 255, 255));
                 }
             }
 
@@ -354,7 +354,7 @@ char *compute_puzzle_cages(IplImage *puzzle, unsigned short puzzle_size) {
                 for (int y = y_center - fuzz; y <= y_center + fuzz; ++y) {
                     CvScalar s = cvGet2D(threshold_image, y, x);
                     total += s.val[0];
-                    cvSet2D(threshold_image, y, x, CV_RGB(255, 255, 255));
+                    //cvSet2D(threshold_image, y, x, CV_RGB(255, 255, 255));
                 }
             }
 
