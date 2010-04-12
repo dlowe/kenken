@@ -6,11 +6,11 @@
 
 c_blob *_locate_puzzle_blob(IplImage *in) {
     IplImage *img = cvCreateImage(cvGetSize(in), 8, 1);
+    IplImage *threshold_image = cvCreateImage(cvGetSize(in), 8, 1);
 
     // convert to grayscale
     cvCvtColor(in, img, CV_BGR2GRAY);
 
-    // apply thresholding (converts it to a binary image)
     long total = 0;
     for (int x = 0; x < img->width; ++x) {
         for (int y = 0; y < img->height; ++y) {
@@ -19,16 +19,58 @@ c_blob *_locate_puzzle_blob(IplImage *in) {
         }
     }
     int mean_intensity = (int)(total / (img->width * img->height));
-    int constant_reduction = (int)(mean_intensity / 3.6 + 0.5);
-    //printf("total: %ld, mean: %d, reduction: %d\n", total, mean_intensity, constant_reduction);
 
     // apply thresholding (converts it to a binary image)
-    cvAdaptiveThreshold(img, img, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 59, constant_reduction);
-    //cvNamedWindow("thresh", 1);
-    //showSmaller(img, "thresh");
+    // block_size observations: higher value does better for images with variable lighting (e.g.
+    //   shadows).
+    int block_size = 139;
+    // constant_reduction observations: magic, but adapting this value to the mean intensity of the
+    //   image as a whole seems to help.
+    int constant_reduction = (int)(mean_intensity / 3.6 + 0.5);
+    cvAdaptiveThreshold(img, threshold_image, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY,
+        block_size, constant_reduction);
 
-    c_blob *blob = c_blob_get_biggest_ink_blob(img);
+    // before blobbing, let's try to get rid of "noise" spots. The blob algorithm is very slow unless
+    // these are cleaned up...
+    int min_blob_size = 2;
+    for (int x = 0; x < threshold_image->width; ++x) {
+        for (int y = 0; y < threshold_image->height; ++y) {
+            CvScalar s = cvGet2D(threshold_image, y, x);
+            int ink_neighbors = 0;
+            if (s.val[0] == 0) {
+                for (int dx = -1; dx <= 1; ++dx) {
+                    if ((x + dx >= 0) && (x + dx < threshold_image->width)) {
+                        for (int dy = -1; dy <= 1; ++dy) {
+                            if ((y + dy >= 0) && (y + dy < threshold_image->height)) {
+                                if (! ((dy == 0) && (dx == 0))) {
+                                    CvScalar m = cvGet2D(threshold_image, y + dy, x + dx);
+                                    if (m.val[0] == 0) {
+                                        ++ink_neighbors;
+                                        if (ink_neighbors > min_blob_size) {
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (ink_neighbors > min_blob_size) {
+                            break;
+                        }
+                    }
+                }
+                if (ink_neighbors <= min_blob_size) {
+                    s.val[0] = 255;
+                    cvSet2D(threshold_image, y, x, s);
+                }
+            }
+        }
+    }
+    //cvNamedWindow("thresh", 1);
+    //showSmaller(threshold_image, "thresh");
+
+    c_blob *blob = c_blob_get_biggest_ink_blob(threshold_image);
     cvReleaseImage(&img);
+    cvReleaseImage(&threshold_image);
     return blob;
 }
 
