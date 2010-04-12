@@ -12,7 +12,7 @@
   blob_area: [ [ 133, 448 ], [ 993, 1318 ] ]
   puzzle_location: [ [ 140, 495 ], [ 962, 441 ], [ 993, 1315 ], [ 140, 1315 ] ]
   size: 3
-  # cages: ABCDBCDEE
+  cages: ABCDBCDEE
 - image: test/IMG_0647.JPG
   blob_area: [ [ 60, 351 ], [ 1156, 1447 ] ]
   puzzle_location: [ [ 174, 353 ], [ 1155, 390 ], [ 1100, 1447 ], [ 68, 1357 ] ]
