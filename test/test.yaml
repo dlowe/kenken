@@ -1,6 +1,3 @@
-- image: test/IMG_0661.JPG
-  blob_area: [ [ 6, 367 ], [ 1105, 1468 ] ]
-  failing: cannot find left border
 - image: test/IMG_0675.JPG
   blob_area: [ [ 16, 413 ], [ 1066, 1487 ] ] 
   puzzle_location: [ [ 51, 413 ], [ 1063, 431 ], [ 1044, 1489 ], [ 33, 1348 ] ]
@@ -9,36 +6,38 @@
   failing: extremely blurry and dim
 - image: test/IMG_0669.JPG
   failing: extremely blurry and dim
-- image: test/IMG_0707.JPG
-  # failing: shadow over the corner...
-  blob_area: [ [ 132, 432 ], [ 1013, 1417 ] ]
-  puzzle_location: [ [ 146, 461 ], [ 1013, 431 ], [ 983, 1393 ], [ 120, 1302 ] ]
-  size: 4
-- image: test/IMG_0708.JPG
-  # failing: shadow over the corner...
-  blob_area: [ [ 128, 388 ], [ 1042, 1366 ] ]
-  puzzle_location: [ [ 129, 400 ], [ 973, 411 ], [ 1038, 1314 ], [ 163, 1377 ] ]
-  size: 4
-- image: test/IMG_0662.JPG
-  failing: extremely blurry and dim
-  blob_area: [ [ 23, 378 ], [ 1125, 1487 ] ] 
-  puzzle_location: [ [ 65, 381 ], [ 1124, 381 ], [ 1124, 1487 ], [ 31, 1411 ] ]
-  size: 9
 
 # working
+- image: test/IMG_0697.JPG
+  blob_area: [ [ 133, 448 ], [ 993, 1318 ] ]
+  puzzle_location: [ [ 140, 495 ], [ 962, 441 ], [ 993, 1315 ], [ 140, 1315 ] ]
+  size: 3
+  # cages: ABCDBCDEE
 - image: test/IMG_0647.JPG
   blob_area: [ [ 60, 351 ], [ 1156, 1447 ] ]
   puzzle_location: [ [ 174, 353 ], [ 1155, 390 ], [ 1100, 1447 ], [ 68, 1357 ] ]
   size: 6
   # cages: AABCCCDEEFGHIIFFGHIJJKKLMNNKOLMPPQQL
+- image: test/IMG_0661.JPG
+  blob_area: [ [ 6, 367 ], [ 1105, 1468 ] ]
+  puzzle_location: [ [ 86, 396 ], [ 1098, 361 ], [ 1098, 1467 ], [ 19, 1354 ] ]
+  size: 9
+- image: test/IMG_0662.JPG
+  blob_area: [ [ 23, 378 ], [ 1125, 1487 ] ] 
+  puzzle_location: [ [ 65, 381 ], [ 1124, 381 ], [ 1124, 1487 ], [ 31, 1411 ] ]
+  size: 9
 - image: test/IMG_0712.JPG
   blob_area: [ [ 111, 318 ], [ 1157, 1348 ] ]
   puzzle_location: [ [ 146, 312 ], [ 1124, 345 ], [ 1156, 1337 ], [ 111, 1331 ] ]
   size: 4
-- image: test/IMG_0697.JPG
-  blob_area: [ [ 133, 448 ], [ 993, 1318 ] ]
-  puzzle_location: [ [ 140, 495 ], [ 962, 441 ], [ 993, 1315 ], [ 140, 1315 ] ]
-  size: 3
+- image: test/IMG_0707.JPG
+  blob_area: [ [ 132, 432 ], [ 1013, 1417 ] ]
+  puzzle_location: [ [ 146, 461 ], [ 1013, 431 ], [ 983, 1393 ], [ 120, 1302 ] ]
+  size: 4
+- image: test/IMG_0708.JPG
+  blob_area: [ [ 128, 388 ], [ 1042, 1366 ] ]
+  puzzle_location: [ [ 129, 400 ], [ 973, 411 ], [ 1038, 1314 ], [ 163, 1377 ] ]
+  size: 4
 - image: test/IMG_0709.JPG
   failing: hmmm
   blob_area: [ [ 0, 273 ], [ 1126, 1471 ] ]
