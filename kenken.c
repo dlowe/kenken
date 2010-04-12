@@ -4,13 +4,13 @@
 #include "kenken.h"
 #include "c_blob.h"
 
-c_blob *_locate_puzzle_blob(IplImage *in) {
+IplImage *_threshold(IplImage *in) {
     IplImage *img = cvCreateImage(cvGetSize(in), 8, 1);
-    IplImage *threshold_image = cvCreateImage(cvGetSize(in), 8, 1);
 
     // convert to grayscale
     cvCvtColor(in, img, CV_BGR2GRAY);
 
+    // compute the mean intensity. This is used to adjust constant_reduction value below.
     long total = 0;
     for (int x = 0; x < img->width; ++x) {
         for (int y = 0; y < img->height; ++y) {
@@ -27,8 +27,11 @@ c_blob *_locate_puzzle_blob(IplImage *in) {
     // constant_reduction observations: magic, but adapting this value to the mean intensity of the
     //   image as a whole seems to help.
     int constant_reduction = (int)(mean_intensity / 3.6 + 0.5);
+
+    IplImage *threshold_image = cvCreateImage(cvGetSize(img), 8, 1);
     cvAdaptiveThreshold(img, threshold_image, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY,
         block_size, constant_reduction);
+    cvReleaseImage(&img);
 
     // before blobbing, let's try to get rid of "noise" spots. The blob algorithm is very slow unless
     // these are cleaned up...
@@ -65,11 +68,17 @@ c_blob *_locate_puzzle_blob(IplImage *in) {
             }
         }
     }
+
+    return threshold_image;
+}
+
+c_blob *_locate_puzzle_blob(IplImage *in) {
+    IplImage *threshold_image = _threshold(in);
+
     //cvNamedWindow("thresh", 1);
     //showSmaller(threshold_image, "thresh");
 
     c_blob *blob = c_blob_get_biggest_ink_blob(threshold_image);
-    cvReleaseImage(&img);
     cvReleaseImage(&threshold_image);
     return blob;
 }
@@ -225,13 +234,7 @@ int _compare_means(void *means, const void *guess_a, const void *guess_b) {
 }
 
 unsigned short compute_puzzle_size(IplImage *puzzle) {
-    IplImage *img = cvCreateImage(cvGetSize(puzzle), 8, 1);
-
-    // convert to grayscale
-    cvCvtColor(puzzle, img, CV_BGR2GRAY);
-
-    // threshold it
-    cvAdaptiveThreshold(img, img, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 59, 4);
+    IplImage *threshold_image = _threshold(puzzle);
 
     // the logic here is to "rank" the possible sizes, by computing the average pixel intensity
     // in the vicinity of where the lines should be.
@@ -240,24 +243,25 @@ unsigned short compute_puzzle_size(IplImage *puzzle) {
     for (unsigned short guess_size = 3; guess_size <= 9; ++guess_size) {
         means[guess_size] = 0;
         for (unsigned short i = 1; i < guess_size; ++i) {
-            int center = i * (img->width / guess_size);
-            for (int x = 0; x < img->width; ++x) {
+            int center = i * (threshold_image->width / guess_size);
+            for (int x = 0; x < threshold_image->width; ++x) {
                 for (int y = center - fuzz; y < center + fuzz; ++y) {
-                    CvScalar s = cvGet2D(img, y, x);
+                    CvScalar s = cvGet2D(threshold_image, y, x);
                     means[guess_size] += s.val[0];
                 }
             }
             for (int x = center - fuzz; x < center + fuzz; ++x) {
-                for (int y = 0; y < img->height; ++y) {
-                    CvScalar s = cvGet2D(img, y, x);
+                for (int y = 0; y < threshold_image->height; ++y) {
+                    CvScalar s = cvGet2D(threshold_image, y, x);
                     means[guess_size] += s.val[0];
                 }
             }
         }
         means[guess_size] /= (guess_size - 1);
         //cvNamedWindow("thresh", 1);
-        //showSmaller(img, "thresh");
+        //showSmaller(threshold_image, "thresh");
     }
+    cvReleaseImage(&threshold_image);
 
     unsigned short guesses[] = { 3, 4, 5, 6, 7, 8, 9 };
     qsort_r(guesses, 7, sizeof(unsigned short), (void *)means, _compare_means);
@@ -281,14 +285,52 @@ unsigned short compute_puzzle_size(IplImage *puzzle) {
 }
 
 static char puzzle_cages[9 * 9 + 1];
+static char cage_names[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 char *compute_puzzle_cages(IplImage *puzzle, unsigned short puzzle_size) {
+    IplImage *threshold_image = _threshold(puzzle);
+
+    // first figure out, for this puzzle, the difference between a cage edge and
+    // a regular edge. We'll do this via the mean intensity of the rough location
+    // where we expect the edges to be.
+    int fuzz = threshold_image->height / 40;
+    for (int box_y = 0; box_y < puzzle_size; ++box_y) {
+        int y_center = (2 * box_y + 1) * (threshold_image->height / puzzle_size / 2);
+        for (int box_x = 1; box_x < puzzle_size; ++box_x) {
+            int x_center = box_x * (threshold_image->width / puzzle_size);
+
+            long total = 0;
+            for (int x = x_center - fuzz; x <= x_center + fuzz; ++x) {
+                for (int y = y_center - fuzz; y <= y_center + fuzz; ++y) {
+                    CvScalar s = cvGet2D(threshold_image, y, x);
+                    total += s.val[0];
+                    cvSet2D(threshold_image, y, x, CV_RGB(255, 255, 255));
+                }
+            }
+
+            int mean = total / ((2 * fuzz +1) * (2 * fuzz + 1));
+            printf("mean = %d\n", mean);
+        }
+    }
+
+    cvNamedWindow("thresh", 1);
+    showSmaller(threshold_image, "thresh");
+
     int i = 0;
+    int next_cage_id = 0;
+    int cage_ids[puzzle_size][puzzle_size];
+    for (int y = 0; y < puzzle_size; ++y) {
+        for (int x = 0; x < puzzle_size; ++x) {
+            cage_ids[x][y] = next_cage_id++;
+        }
+    }
+
     for (int x = 0; x < puzzle_size; ++x) {
         for (int y = 0; y < puzzle_size; ++y) {
-            puzzle_cages[i++] = 'A';
+            puzzle_cages[i++] = cage_names[cage_ids[x][y]];
         }
     }
     puzzle_cages[i] = 0;
+    cvReleaseImage(&threshold_image);
     return puzzle_cages;
 }
 
