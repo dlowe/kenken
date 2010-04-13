@@ -318,7 +318,8 @@ char *compute_puzzle_cages(IplImage *puzzle, unsigned short puzzle_size) {
     // first figure out, for this puzzle, the difference between a cage edge and
     // a regular edge. We'll do this via the mean intensity of the rough location
     // where we expect the edges to be.
-    int fuzz = threshold_image->height / 40;
+    int fuzz_along  = threshold_image->height / (puzzle_size * 2.6);
+    int fuzz_across = threshold_image->height / (puzzle_size * 5.0);
 
 
     // look at the right edge of each box
@@ -331,15 +332,15 @@ char *compute_puzzle_cages(IplImage *puzzle, unsigned short puzzle_size) {
             int x_center = (box_x + 1) * (threshold_image->width / puzzle_size);
 
             long total = 0;
-            for (int x = x_center - fuzz; x <= x_center + fuzz; ++x) {
-                for (int y = y_center - fuzz; y <= y_center + fuzz; ++y) {
+            for (int x = x_center - fuzz_across; x <= x_center + fuzz_across; ++x) {
+                for (int y = y_center - fuzz_along; y <= y_center + fuzz_along; ++y) {
                     CvScalar s = cvGet2D(threshold_image, y, x);
                     total += s.val[0];
-                    //cvSet2D(threshold_image, y, x, CV_RGB(255, 255, 255));
+                    //cvSet2D(threshold_image, y, x, CV_RGB(128, 128, 128));
                 }
             }
 
-            int mean = total / ((2 * fuzz +1) * (2 * fuzz + 1));
+            int mean = total / ((2 * fuzz_along + 1) * (2 * fuzz_across + 1));
             right_means[box_x][box_y] = mean;
             if ((right_mean_max == -1) || (mean > right_mean_max)) {
                 right_mean_max = mean;
@@ -383,15 +384,15 @@ char *compute_puzzle_cages(IplImage *puzzle, unsigned short puzzle_size) {
             int y_center = (box_y + 1) * (threshold_image->height / puzzle_size);
 
             long total = 0;
-            for (int x = x_center - fuzz; x <= x_center + fuzz; ++x) {
-                for (int y = y_center - fuzz; y <= y_center + fuzz; ++y) {
+            for (int x = x_center - fuzz_along; x <= x_center + fuzz_along; ++x) {
+                for (int y = y_center - fuzz_across; y <= y_center + fuzz_across; ++y) {
                     CvScalar s = cvGet2D(threshold_image, y, x);
                     total += s.val[0];
-                    //cvSet2D(threshold_image, y, x, CV_RGB(255, 255, 255));
+                    //cvSet2D(threshold_image, y, x, CV_RGB(128, 128, 128));
                 }
             }
 
-            int mean = total / ((2 * fuzz +1) * (2 * fuzz + 1));
+            int mean = total / ((2 * fuzz_along +1) * (2 * fuzz_across + 1));
             bottom_means[box_x][box_y] = mean;
             if ((bottom_mean_max == -1) || (mean > bottom_mean_max)) {
                 bottom_mean_max = mean;
