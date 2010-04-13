@@ -53,9 +53,9 @@ void show_with_cages(IplImage *in, int actual_size, char *cages, char *window_na
 
             char c = cages[(y * actual_size) + x];
 
-            int red   = ((c % 3) == 0) ? (((c - 65) * 6) + 10) : 0;
-            int green = ((c % 3) == 1) ? (((c - 65) * 6) + 10) : 0;
-            int blue  = ((c % 3) == 2) ? (((c - 65) * 6) + 10): 0;
+            int red   = ((c % 3) == 0) ? (((c - 65) * 7) + 10) : 0;
+            int green = ((c % 3) == 1) ? (((c - 65) * 7) + 10) : 0;
+            int blue  = ((c % 3) == 2) ? (((c - 65) * 7) + 10) : 0;
 
             for (int px = top_left.x; px < bottom_right.x; ++px) {
                 for (int py = top_left.y; py < bottom_right.y; ++py) {
