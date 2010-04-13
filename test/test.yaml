@@ -21,73 +21,61 @@
   blob_area: [ [ 100, 319 ], [ 1179, 1430 ] ]
   puzzle_location: [ [ 109, 370 ], [ 1085, 319 ], [ 1180, 1402 ], [ 109, 1402 ] ]
   size: 8
-  cages: A
   failing: cages
 - image: test/IMG_0666.JPG
   blob_area: [ [ 65, 343 ], [ 1185, 1486 ] ]
   puzzle_location: [ [ 104, 376 ], [ 1118, 341 ], [ 1178, 1467 ], [ 67, 1428 ] ]
   size: 8
-  cages: A
   failing: cages
 - image: test/IMG_0674.JPG
   blob_area: [ [ 98, 308 ], [ 1200, 1439 ] ]
   puzzle_location: [ [ 118, 342 ], [ 1127, 307 ], [ 1206, 1434 ], [ 99, 1415 ] ]
   size: 7
-  cages: A
   failing: cages
 - image: test/IMG_0672.JPG
   blob_area: [ [ 69, 361 ], [ 1178, 1485 ] ]
   puzzle_location: [ [ 86, 388 ], [ 1094, 348 ], [ 1173, 1478 ], [ 67, 1475 ] ]
   size: 8
-  cages: A
   failing: cages
 - image: test/IMG_0661.JPG
   blob_area: [ [ 6, 367 ], [ 1105, 1468 ] ]
   puzzle_location: [ [ 86, 396 ], [ 1098, 361 ], [ 1098, 1467 ], [ 19, 1354 ] ]
   size: 9
-  cages: A
   failing: cages
 - image: test/IMG_0662.JPG
   blob_area: [ [ 23, 378 ], [ 1125, 1487 ] ]
   puzzle_location: [ [ 65, 381 ], [ 1124, 381 ], [ 1124, 1487 ], [ 31, 1411 ] ]
   size: 9
-  cages: A
   failing: cages
 - image: test/IMG_0657.JPG
   blob_area: [ [ 64, 317 ], [ 1195, 1454 ] ]
   puzzle_location: [ [ 63, 385 ], [ 1145, 327 ], [ 1185, 1445 ], [ 115, 1389 ] ]
   size: 9
-  cages: A
   failing: cages
 - image: test/IMG_0655.JPG
   blob_area: [ [ 104, 313 ], [ 1180, 1475 ] ]
   puzzle_location: [ [ 109, 372 ], [ 1158, 317 ], [ 1178, 1468 ], [ 109, 1355 ] ]
   size: 9
-  cages: A
   failing: cages
 - image: test/IMG_0660.JPG
   blob_area: [ [ 103, 452 ], [ 1049, 1446 ] ]
   puzzle_location: [ [ 140, 457 ], [ 1046, 473 ], [ 1028, 1444 ], [ 109, 1348 ] ]
   size: 9
-  cages: A
   failing: cages
 - image: test/IMG_0659.JPG
   blob_area: [ [ 76, 284 ], [ 1183, 1448 ] ]
   puzzle_location: [ [ 74, 363 ], [ 1133, 289 ], [ 1173, 1436 ], [ 92, 1380 ] ]
   size: 9
-  cages: A
   failing: cages
 - image: test/IMG_0658.JPG
   blob_area: [ [ 87, 428 ], [ 1077, 1451 ] ]
   puzzle_location: [ [ 113, 439 ], [ 1072, 430 ], [ 1072, 1441 ], [ 87, 1389 ] ]
   size: 9
-  cages: A
   failing: cages
 - image: test/IMG_0656.JPG
   blob_area: [ [ 25, 252 ], [ 1065, 1388 ] ]
   puzzle_location: [ [ 40, 326 ], [ 1055, 237 ], [ 1055, 1386 ], [ 22, 1332 ] ]
   size: 9
-  cages: A
   failing: cages
 
 # working

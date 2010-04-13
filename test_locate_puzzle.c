@@ -71,6 +71,7 @@ void show_with_cages(IplImage *in, int actual_size, char *cages, char *window_na
     showSmaller(squared_puzzle, window_name);
 }
 
+char *DEFAULT_CAGES = "";
 int main (int argc, char** argv) {
     yaml_parser_t parser;
     yaml_document_t document;
@@ -211,6 +212,9 @@ int main (int argc, char** argv) {
             printf("incomplete test case (missing 'image')\n");
             exit(255);
         }
+        if (test_case.cages == NULL) {
+            test_case.cages = DEFAULT_CAGES;
+        }
 
         if (test_case.failing) {
             continue;
@@ -323,22 +327,20 @@ int main (int argc, char** argv) {
             exit(fail_n);
         }
 
-        if (test_case.cages != NULL) {
-            char *actual_cages = compute_puzzle_cages(squared_puzzle, actual_size);
-            ok(strcmp(actual_cages, test_case.cages) == 0, "%s: cages=%s, expecting %s", test_case.image, actual_cages, test_case.cages);
+        char *actual_cages = compute_puzzle_cages(squared_puzzle, actual_size);
+        ok(strcmp(actual_cages, test_case.cages) == 0, "%s: cages=%s, expecting %s", test_case.image, actual_cages, test_case.cages);
 
-            if (fail_n) {
-                cvNamedWindow("expected", 1);
-                cvNamedWindow("actual", 1);
+        if (fail_n) {
+            cvNamedWindow("expected", 1);
+            cvNamedWindow("actual", 1);
 
-                show_with_cages(squared_puzzle, actual_size, test_case.cages, "expected");
-                show_with_cages(squared_puzzle, actual_size, actual_cages, "actual");
+            show_with_cages(squared_puzzle, actual_size, test_case.cages, "expected");
+            show_with_cages(squared_puzzle, actual_size, actual_cages, "actual");
 
-                cvWaitKey(0);
-                cvDestroyWindow("actual");
-                cvDestroyWindow("expected");
-                exit(fail_n);
-            }
+            cvWaitKey(0);
+            cvDestroyWindow("actual");
+            cvDestroyWindow("expected");
+            exit(fail_n);
         }
     }
 

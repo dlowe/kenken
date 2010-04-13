@@ -11,3 +11,4 @@ Current state:
   * locate the puzzle's corners
   * perspective transform this image into a square
   * figure out the size (3x3, 4x4, 5x5, etc) of the puzzle
+  * figure out the cage layout of the puzzle
