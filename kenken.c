@@ -4,7 +4,7 @@
 #include "kenken.h"
 #include "c_blob.h"
 
-IplImage *_threshold(IplImage *in) {
+static IplImage *_threshold(IplImage *in) {
     IplImage *img = cvCreateImage(cvGetSize(in), 8, 1);
 
     // convert to grayscale
@@ -229,7 +229,7 @@ IplImage *square_puzzle(IplImage *in, const CvPoint2D32f *location) {
     return warped_image;
 }
 
-int _compare_means(void *means, const void *guess_a, const void *guess_b) {
+static int _compare_means(void *means, const void *guess_a, const void *guess_b) {
     return ((unsigned long *)means)[*((unsigned short *)guess_a)] - ((unsigned long *)means)[*((unsigned short *)guess_b)];
 }
 
@@ -294,7 +294,7 @@ typedef enum {
     BOTTOM
 } border_direction;
 
-short _border_dx(border_direction b) {
+static short _border_dx(border_direction b) {
     switch (b) {
          case LEFT:  return -1;
          case RIGHT: return 1;
@@ -302,7 +302,7 @@ short _border_dx(border_direction b) {
     }
 }
 
-short _border_dy(border_direction b) {
+static short _border_dy(border_direction b) {
     switch (b) {
         case TOP:    return -1;
         case BOTTOM: return 1;
@@ -310,7 +310,7 @@ short _border_dy(border_direction b) {
     }
 }
 
-void _explore_cage(int cage_id, int box_x, int box_y, int cage_ids[PUZZLE_SIZE_MAX][PUZZLE_SIZE_MAX], short cage_borders[PUZZLE_SIZE_MAX][PUZZLE_SIZE_MAX][4]) {
+static void _explore_cage(int cage_id, int box_x, int box_y, int cage_ids[PUZZLE_SIZE_MAX][PUZZLE_SIZE_MAX], short cage_borders[PUZZLE_SIZE_MAX][PUZZLE_SIZE_MAX][4]) {
     if (cage_ids[box_x][box_y] == cage_id) {
         // been here already
         return;
@@ -325,109 +325,85 @@ void _explore_cage(int cage_id, int box_x, int box_y, int cage_ids[PUZZLE_SIZE_M
     return;
 }
 
-char *compute_puzzle_cages(IplImage *puzzle, puzzle_size size) {
-    IplImage *threshold_image = _threshold(puzzle);
+static CvScalar _getpixel(IplImage *threshold_image, border_direction d, int across, int along) {
+    if (d == BOTTOM) {
+        return cvGet2D(threshold_image, across, along);
+    }
+    return cvGet2D(threshold_image, along, across);
+}
 
-    // first figure out, for this puzzle, the difference between a cage edge and
+static short *_getborder(short cage_borders[PUZZLE_SIZE_MAX][PUZZLE_SIZE_MAX][4], border_direction d, int across, int along) {
+    if ((d == BOTTOM) || (d == TOP)) {
+        return &(cage_borders[along][across][d]);
+    }
+    return &(cage_borders[across][along][d]);
+}
+
+static void _find_cage_borders(IplImage *threshold_image, puzzle_size size, border_direction direction, border_direction opposite, short cage_borders[PUZZLE_SIZE_MAX][PUZZLE_SIZE_MAX][4]) {
+    assert(threshold_image->height == threshold_image->width);
+
+    int px_size = threshold_image->height;
+
+    // first figure out, for this puzzle, the difference between a cage border and
     // a regular edge. We'll do this via the mean intensity of the rough location
     // where we expect the edges to be.
-    int fuzz_along  = threshold_image->height / (size * 2.6);
-    int fuzz_across = threshold_image->height / (size * 5.0);
+    int fuzz_along  = px_size / (size * 2.6);
+    int fuzz_across = px_size / (size * 5.0);
 
-    short cage_borders[PUZZLE_SIZE_MAX][PUZZLE_SIZE_MAX][4];
-
-
-    // look at the right edge of each box
-    int right_mean_max = -1;
-    int right_mean_min = -1;
-    int right_means[size - 1][size];
-    for (int box_y = 0; box_y < size; ++box_y) {
-        int y_center = (2 * box_y + 1) * (threshold_image->height / size / 2);
-        for (int box_x = 0; box_x < (size - 1); ++box_x) {
-            int x_center = (box_x + 1) * (threshold_image->width / size);
+    int means[size][size];
+    int mean_max = -1;
+    int mean_min = -1;
+    for (int box_along = 0; box_along < size; ++box_along) {
+        int along_center = (2 * box_along + 1) * (px_size / size / 2);
+        for (int box_across = 0; box_across < (size - 1); ++box_across) {
+            int across_center = (box_across + 1) * (px_size / size);
 
             long total = 0;
-            for (int x = x_center - fuzz_across; x <= x_center + fuzz_across; ++x) {
-                for (int y = y_center - fuzz_along; y <= y_center + fuzz_along; ++y) {
-                    CvScalar s = cvGet2D(threshold_image, y, x);
+            for (int across = across_center - fuzz_across; across <= across_center + fuzz_across; ++across) {
+                for (int along = along_center - fuzz_along; along <= along_center + fuzz_along; ++along) {
+                    CvScalar s = _getpixel(threshold_image, direction, across, along);
                     total += s.val[0];
-                    //cvSet2D(threshold_image, y, x, CV_RGB(128, 128, 128));
                 }
             }
 
             int mean = total / ((2 * fuzz_along + 1) * (2 * fuzz_across + 1));
-            right_means[box_x][box_y] = mean;
-            if ((right_mean_max == -1) || (mean > right_mean_max)) {
-                right_mean_max = mean;
+            means[box_across][box_along] = mean;
+            if ((mean_max == -1) || (mean > mean_max)) {
+                mean_max = mean;
             }
-            if ((right_mean_min == -1) || (mean < right_mean_min)) {
-                right_mean_min = mean;
-            }
-        }
-    }
-
-    for (int box_y = 0; box_y < size; ++box_y) {
-        for (int box_x = 0; box_x < (size - 1); ++box_x) {
-            int delta_min = abs(right_means[box_x][box_y] - right_mean_min);
-            int delta_max = abs(right_means[box_x][box_y] - right_mean_max);
-            cage_borders[box_x][box_y][RIGHT] = (delta_min < delta_max);
-            //printf("(%d, %d) right edge mean = %d, is_cage = %d\n", box_x, box_y, right_means[box_x][box_y], right_is_cage[box_x][box_y]);
-        }
-        cage_borders[size - 1][box_y][RIGHT] = 1;
-        //printf("(%d, %d) right edge is_cage = 1\n", size - 1, box_y);
-    }
-    for (int box_y = 0; box_y < size; ++box_y) {
-        cage_borders[0][box_y][LEFT] = 1;
-        for (int box_x = 1; box_x < size; ++box_x) {
-            cage_borders[box_x][box_y][LEFT] = cage_borders[box_x - 1][box_y][RIGHT];
-        }
-    }
-
-    // look at the bottom edge of each box
-    int bottom_means[size][size - 1];
-    int bottom_mean_min = -1;
-    int bottom_mean_max = -1;
-    for (int box_x = 0; box_x < size; ++box_x) {
-        int x_center = (2 * box_x + 1) * (threshold_image->width / size / 2);
-        for (int box_y = 0; box_y < (size - 1); ++box_y) {
-            int y_center = (box_y + 1) * (threshold_image->height / size);
-
-            long total = 0;
-            for (int x = x_center - fuzz_along; x <= x_center + fuzz_along; ++x) {
-                for (int y = y_center - fuzz_across; y <= y_center + fuzz_across; ++y) {
-                    CvScalar s = cvGet2D(threshold_image, y, x);
-                    total += s.val[0];
-                    //cvSet2D(threshold_image, y, x, CV_RGB(128, 128, 128));
-                }
-            }
-
-            int mean = total / ((2 * fuzz_along +1) * (2 * fuzz_across + 1));
-            bottom_means[box_x][box_y] = mean;
-            if ((bottom_mean_max == -1) || (mean > bottom_mean_max)) {
-                bottom_mean_max = mean;
-            }
-            if ((bottom_mean_min == -1) || (mean < bottom_mean_min)) {
-                bottom_mean_min = mean;
+            if ((mean_min == -1) || (mean < mean_min)) {
+                mean_min = mean;
             }
         }
     }
 
-    for (int box_x = 0; box_x < size; ++box_x) {
-        for (int box_y = 0; box_y < (size - 1); ++box_y) {
-            int delta_min = abs(bottom_means[box_x][box_y] - bottom_mean_min);
-            int delta_max = abs(bottom_means[box_x][box_y] - bottom_mean_max);
-            cage_borders[box_x][box_y][BOTTOM] = (delta_min < delta_max);
-            //printf("(%d, %d) bottom edge mean = %d, delta_min = %d, delta_max = %d, is_cage = %d\n", box_x, box_y, bottom_means[box_x][box_y], delta_min, delta_max, bottom_is_cage[box_x][box_y]);
+    for (int box_along = 0; box_along < size; ++box_along) {
+        int box_across;
+        for (box_across = 0; box_across < (size - 1); ++box_across) {
+            int delta_min = abs(means[box_across][box_along] - mean_min);
+            int delta_max = abs(means[box_across][box_along] - mean_max);
+            *(_getborder(cage_borders, direction, box_across, box_along)) = (delta_min < delta_max);
         }
-        cage_borders[box_x][size - 1][BOTTOM] = 1;
-        //printf("(%d, %d) bottom edge is_cage = 1\n", box_x, size - 1);
+        *(_getborder(cage_borders, direction, box_across, box_along)) = 1;
     }
-    for (int box_x = 0; box_x < size; ++box_x) {
-        cage_borders[box_x][0][TOP] = 1;
-        for (int box_y = 1; box_y < size; ++box_y) {
-            cage_borders[box_x][box_y][TOP] = cage_borders[box_x][box_y - 1][BOTTOM];
+    for (int box_along = 0; box_along < size; ++box_along) {
+        int box_across = 0;
+        *(_getborder(cage_borders, opposite, box_across, box_along)) = 1;
+        for (box_across = 1; box_across < size; ++box_across) {
+            *(_getborder(cage_borders, opposite, box_across, box_along)) = *(_getborder(cage_borders, direction, box_across - 1, box_along));
         }
     }
+
+    return;
+}
+
+char *compute_puzzle_cages(IplImage *puzzle, puzzle_size size) {
+    IplImage *threshold_image = _threshold(puzzle);
+
+    short cage_borders[PUZZLE_SIZE_MAX][PUZZLE_SIZE_MAX][4];
+
+    _find_cage_borders(threshold_image, size, RIGHT, LEFT, cage_borders);
+    _find_cage_borders(threshold_image, size, BOTTOM, TOP, cage_borders);
 
     //cvNamedWindow("thresh", 1);
     //showSmaller(threshold_image, "thresh");
