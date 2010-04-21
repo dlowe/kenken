@@ -281,28 +281,40 @@ unsigned short compute_puzzle_size(IplImage *puzzle) {
     return guesses[0];
 }
 
-void _explore_cage(int cage_id, int box_x, int box_y, int cage_ids[9][9], short left_is_cage[9][9], short right_is_cage[9][9], short top_is_cage[9][9], short bottom_is_cage[9][9]) {
+typedef enum {
+    LEFT,
+    RIGHT,
+    TOP,
+    BOTTOM
+} border_direction;
+
+short _border_dx(border_direction b) {
+    switch (b) {
+         case LEFT:  return -1;
+         case RIGHT: return 1;
+         default:    return 0;
+    }
+}
+
+short _border_dy(border_direction b) {
+    switch (b) {
+        case TOP:    return -1;
+        case BOTTOM: return 1;
+        default:     return 0;
+    }
+}
+
+void _explore_cage(int cage_id, int box_x, int box_y, int cage_ids[9][9], short cage_borders[9][9][4]) {
     if (cage_ids[box_x][box_y] == cage_id) {
         // been here already
         return;
     }
     cage_ids[box_x][box_y] = cage_id;
 
-    if (! left_is_cage[box_x][box_y]) {
-        //printf("(%d, %d) left is unbound, going to (%d, %d)...\n", box_x, box_y, box_x - 1, box_y);
-        _explore_cage(cage_id, box_x - 1, box_y, cage_ids, left_is_cage, right_is_cage, top_is_cage, bottom_is_cage);
-    }
-    if (! right_is_cage[box_x][box_y]) {
-        //printf("(%d, %d) right is unbound, going to (%d, %d)...\n", box_x, box_y, box_x + 1, box_y);
-        _explore_cage(cage_id, box_x + 1, box_y, cage_ids, left_is_cage, right_is_cage, top_is_cage, bottom_is_cage);
-    }
-    if (! top_is_cage[box_x][box_y]) {
-        //printf("(%d, %d) top is unbound, going to (%d, %d)...\n", box_x, box_y, box_x, box_y - 1);
-        _explore_cage(cage_id, box_x, box_y - 1, cage_ids, left_is_cage, right_is_cage, top_is_cage, bottom_is_cage);
-    }
-    if (! bottom_is_cage[box_x][box_y]) {
-        //printf("(%d, %d) bottom is unbound, going to (%d, %d)...\n", box_x, box_y, box_x, box_y + 1);
-        _explore_cage(cage_id, box_x, box_y + 1, cage_ids, left_is_cage, right_is_cage, top_is_cage, bottom_is_cage);
+    for (border_direction b = LEFT; b <= BOTTOM; ++b) {
+        if (! cage_borders[box_x][box_y][b]) {
+            _explore_cage(cage_id, box_x + _border_dx(b), box_y + _border_dy(b), cage_ids, cage_borders);
+        }
     }
     return;
 }
@@ -317,6 +329,8 @@ char *compute_puzzle_cages(IplImage *puzzle, unsigned short puzzle_size) {
     // where we expect the edges to be.
     int fuzz_along  = threshold_image->height / (puzzle_size * 2.6);
     int fuzz_across = threshold_image->height / (puzzle_size * 5.0);
+
+    short cage_borders[9][9][4];
 
 
     // look at the right edge of each box
@@ -348,26 +362,20 @@ char *compute_puzzle_cages(IplImage *puzzle, unsigned short puzzle_size) {
         }
     }
 
-    short right_is_cage[9][9];
     for (int box_y = 0; box_y < puzzle_size; ++box_y) {
         for (int box_x = 0; box_x < (puzzle_size - 1); ++box_x) {
             int delta_min = abs(right_means[box_x][box_y] - right_mean_min);
             int delta_max = abs(right_means[box_x][box_y] - right_mean_max);
-            if (delta_min < delta_max) {
-                right_is_cage[box_x][box_y] = 1;
-            } else {
-                right_is_cage[box_x][box_y] = 0;
-            }
+            cage_borders[box_x][box_y][RIGHT] = (delta_min < delta_max);
             //printf("(%d, %d) right edge mean = %d, is_cage = %d\n", box_x, box_y, right_means[box_x][box_y], right_is_cage[box_x][box_y]);
         }
-        right_is_cage[puzzle_size - 1][box_y] = 1;
+        cage_borders[puzzle_size - 1][box_y][RIGHT] = 1;
         //printf("(%d, %d) right edge is_cage = 1\n", puzzle_size - 1, box_y);
     }
-    short left_is_cage[9][9];
     for (int box_y = 0; box_y < puzzle_size; ++box_y) {
-        left_is_cage[0][box_y] = 1;
+        cage_borders[0][box_y][LEFT] = 1;
         for (int box_x = 1; box_x < puzzle_size; ++box_x) {
-            left_is_cage[box_x][box_y] = right_is_cage[box_x - 1][box_y];
+            cage_borders[box_x][box_y][LEFT] = cage_borders[box_x - 1][box_y][RIGHT];
         }
     }
 
@@ -400,33 +408,26 @@ char *compute_puzzle_cages(IplImage *puzzle, unsigned short puzzle_size) {
         }
     }
 
-    short bottom_is_cage[9][9];
     for (int box_x = 0; box_x < puzzle_size; ++box_x) {
         for (int box_y = 0; box_y < (puzzle_size - 1); ++box_y) {
             int delta_min = abs(bottom_means[box_x][box_y] - bottom_mean_min);
             int delta_max = abs(bottom_means[box_x][box_y] - bottom_mean_max);
-            if (delta_min < delta_max) {
-                bottom_is_cage[box_x][box_y] = 1;       
-            } else {
-                bottom_is_cage[box_x][box_y] = 0;
-            }
+            cage_borders[box_x][box_y][BOTTOM] = (delta_min < delta_max);
             //printf("(%d, %d) bottom edge mean = %d, delta_min = %d, delta_max = %d, is_cage = %d\n", box_x, box_y, bottom_means[box_x][box_y], delta_min, delta_max, bottom_is_cage[box_x][box_y]);
         }
-        bottom_is_cage[box_x][puzzle_size - 1] = 1;
+        cage_borders[box_x][puzzle_size - 1][BOTTOM] = 1;
         //printf("(%d, %d) bottom edge is_cage = 1\n", box_x, puzzle_size - 1);
     }
-    short top_is_cage[9][9];
     for (int box_x = 0; box_x < puzzle_size; ++box_x) {
-        top_is_cage[box_x][0] = 1;
+        cage_borders[box_x][0][TOP] = 1;
         for (int box_y = 1; box_y < puzzle_size; ++box_y) {
-            top_is_cage[box_x][box_y] = bottom_is_cage[box_x][box_y - 1];
+            cage_borders[box_x][box_y][TOP] = cage_borders[box_x][box_y - 1][BOTTOM];
         }
     }
 
     //cvNamedWindow("thresh", 1);
     //showSmaller(threshold_image, "thresh");
 
-    int next_cage_id = 0;
     int cage_ids[9][9];
     for (int box_x = 0; box_x < puzzle_size; ++box_x) {
         for (int box_y = 0; box_y < puzzle_size; ++box_y) {
@@ -434,13 +435,13 @@ char *compute_puzzle_cages(IplImage *puzzle, unsigned short puzzle_size) {
         }
     }
 
-    // pass through the puzzle from top to bottom, left to right, propagating cage_id values to the
-    // bottom and the right through edges which are not cage edges.
+    // pass through the puzzle from top to bottom, left to right, propagating cage_id values
+    // through edges which are not cage borders.
+    int next_cage_id = 0;
     for (int box_y = 0; box_y < puzzle_size; ++box_y) {
         for (int box_x = 0; box_x < puzzle_size; ++box_x) {
             if (cage_ids[box_x][box_y] == -1) {
-                //printf("(%d, %d) is a new cage\n", box_x, box_y);
-                _explore_cage(next_cage_id++, box_x, box_y, cage_ids, left_is_cage, right_is_cage, top_is_cage, bottom_is_cage);
+                _explore_cage(next_cage_id++, box_x, box_y, cage_ids, cage_borders);
             }
         }
     }
