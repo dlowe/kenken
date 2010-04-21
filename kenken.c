@@ -271,14 +271,11 @@ unsigned short compute_puzzle_size(IplImage *puzzle) {
     //}
 
     // evenly divisible sizes are easily confused. Err on the side of the larger size puzzle.
-    if ((guesses[0] == 4) && (guesses[1] == 8) && (means[guesses[1]] - means[guesses[0]] < means[guesses[2]] - means[guesses[1]])) {
-        return 8;
-    }
-    if ((guesses[0] == 3) && (guesses[1] == 9) && (means[guesses[1]] - means[guesses[0]] < means[guesses[2]] - means[guesses[1]])) {
-        return 9;
-    }
-    if ((guesses[0] == 3) && (guesses[1] == 6) && (means[guesses[1]] - means[guesses[0]] < means[guesses[2]] - means[guesses[1]])) {
-        return 6;
+    unsigned short confusable[][2] = { { 4, 8 }, { 3, 9 }, { 3, 6 } };
+    for (int i = 0; i < (sizeof(confusable) / sizeof(unsigned short) / 2); ++i) {
+        if ((guesses[0] == confusable[i][0]) && (guesses[1] == confusable[i][1]) && (means[guesses[1]] - means[guesses[0]] < means[guesses[2]] - means[guesses[1]])) {
+            return confusable[i][1];
+        }
     }
 
     return guesses[0];
