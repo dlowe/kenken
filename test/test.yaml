@@ -1,3 +1,15 @@
+# a few monkey wrenches
+- image: test/IMG_0715.PNG
+  failing: screenshot from kenken app, completely hosed :(
+- image: test/IMG_0716.PNG
+  failing: screenshot from kenken app, completely hosed :(
+- image: test/IMG_0717.PNG
+  failing: screenshot from kenken app, completely hosed :(
+- image: test/IMG_0718.PNG
+  failing: screenshot from kenken app, completely hosed :(
+- image: test/IMG_0719.PNG
+  failing: screenshot from kenken app, completely hosed :(
+
 # blob failures
 - image: test/IMG_0667.JPG
   failing: extremely blurry and dim
