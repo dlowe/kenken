@@ -233,14 +233,21 @@ int _compare_means(void *means, const void *guess_a, const void *guess_b) {
     return ((unsigned long *)means)[*((unsigned short *)guess_a)] - ((unsigned long *)means)[*((unsigned short *)guess_b)];
 }
 
-unsigned short compute_puzzle_size(IplImage *puzzle) {
+enum { PUZZLE_SIZE_MIN = 3 };
+enum { PUZZLE_SIZE_MAX = 9 };
+
+puzzle_size compute_puzzle_size(IplImage *puzzle) {
     IplImage *threshold_image = _threshold(puzzle);
 
     // the logic here is to "rank" the possible sizes, by computing the average pixel intensity
     // in the vicinity of where the lines should be.
-    unsigned long means[10];
+    unsigned short guess_id = 0;
+    puzzle_size guesses[PUZZLE_SIZE_MAX - PUZZLE_SIZE_MIN + 1];
+    unsigned long means[PUZZLE_SIZE_MAX + 1];
+
     const int fuzz = 8;
-    for (unsigned short guess_size = 3; guess_size <= 9; ++guess_size) {
+    for (puzzle_size guess_size = PUZZLE_SIZE_MIN; guess_size <= PUZZLE_SIZE_MAX; ++guess_size) {
+        guesses[guess_id++] = guess_size;
         means[guess_size] = 0;
         for (unsigned short i = 1; i < guess_size; ++i) {
             int center = i * (threshold_image->width / guess_size);
@@ -263,16 +270,15 @@ unsigned short compute_puzzle_size(IplImage *puzzle) {
     }
     cvReleaseImage(&threshold_image);
 
-    unsigned short guesses[] = { 3, 4, 5, 6, 7, 8, 9 };
-    qsort_r(guesses, 7, sizeof(unsigned short), (void *)means, _compare_means);
+    qsort_r(guesses, sizeof(guesses) / sizeof(puzzle_size), sizeof(puzzle_size), (void *)means, _compare_means);
 
     //for (int i = 0; i < 7; ++i) {
         //printf("%d: %lu\n", guesses[i], means[guesses[i]]);
     //}
 
     // evenly divisible sizes are easily confused. Err on the side of the larger size puzzle.
-    unsigned short confusable[][2] = { { 4, 8 }, { 3, 9 }, { 3, 6 } };
-    for (int i = 0; i < (sizeof(confusable) / sizeof(unsigned short) / 2); ++i) {
+    puzzle_size confusable[][2] = { { 4, 8 }, { 3, 9 }, { 3, 6 } };
+    for (int i = 0; i < (sizeof(confusable) / sizeof(puzzle_size) / 2); ++i) {
         if ((guesses[0] == confusable[i][0]) && (guesses[1] == confusable[i][1]) && (means[guesses[1]] - means[guesses[0]] < means[guesses[2]] - means[guesses[1]])) {
             return confusable[i][1];
         }
@@ -304,7 +310,7 @@ short _border_dy(border_direction b) {
     }
 }
 
-void _explore_cage(int cage_id, int box_x, int box_y, int cage_ids[9][9], short cage_borders[9][9][4]) {
+void _explore_cage(int cage_id, int box_x, int box_y, int cage_ids[PUZZLE_SIZE_MAX][PUZZLE_SIZE_MAX], short cage_borders[PUZZLE_SIZE_MAX][PUZZLE_SIZE_MAX][4]) {
     if (cage_ids[box_x][box_y] == cage_id) {
         // been here already
         return;
@@ -319,28 +325,26 @@ void _explore_cage(int cage_id, int box_x, int box_y, int cage_ids[9][9], short 
     return;
 }
 
-static char puzzle_cages[9 * 9 + 1];
-static char cage_names[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-char *compute_puzzle_cages(IplImage *puzzle, unsigned short puzzle_size) {
+char *compute_puzzle_cages(IplImage *puzzle, puzzle_size size) {
     IplImage *threshold_image = _threshold(puzzle);
 
     // first figure out, for this puzzle, the difference between a cage edge and
     // a regular edge. We'll do this via the mean intensity of the rough location
     // where we expect the edges to be.
-    int fuzz_along  = threshold_image->height / (puzzle_size * 2.6);
-    int fuzz_across = threshold_image->height / (puzzle_size * 5.0);
+    int fuzz_along  = threshold_image->height / (size * 2.6);
+    int fuzz_across = threshold_image->height / (size * 5.0);
 
-    short cage_borders[9][9][4];
+    short cage_borders[PUZZLE_SIZE_MAX][PUZZLE_SIZE_MAX][4];
 
 
     // look at the right edge of each box
     int right_mean_max = -1;
     int right_mean_min = -1;
-    int right_means[puzzle_size - 1][puzzle_size];
-    for (int box_y = 0; box_y < puzzle_size; ++box_y) {
-        int y_center = (2 * box_y + 1) * (threshold_image->height / puzzle_size / 2);
-        for (int box_x = 0; box_x < (puzzle_size - 1); ++box_x) {
-            int x_center = (box_x + 1) * (threshold_image->width / puzzle_size);
+    int right_means[size - 1][size];
+    for (int box_y = 0; box_y < size; ++box_y) {
+        int y_center = (2 * box_y + 1) * (threshold_image->height / size / 2);
+        for (int box_x = 0; box_x < (size - 1); ++box_x) {
+            int x_center = (box_x + 1) * (threshold_image->width / size);
 
             long total = 0;
             for (int x = x_center - fuzz_across; x <= x_center + fuzz_across; ++x) {
@@ -362,31 +366,31 @@ char *compute_puzzle_cages(IplImage *puzzle, unsigned short puzzle_size) {
         }
     }
 
-    for (int box_y = 0; box_y < puzzle_size; ++box_y) {
-        for (int box_x = 0; box_x < (puzzle_size - 1); ++box_x) {
+    for (int box_y = 0; box_y < size; ++box_y) {
+        for (int box_x = 0; box_x < (size - 1); ++box_x) {
             int delta_min = abs(right_means[box_x][box_y] - right_mean_min);
             int delta_max = abs(right_means[box_x][box_y] - right_mean_max);
             cage_borders[box_x][box_y][RIGHT] = (delta_min < delta_max);
             //printf("(%d, %d) right edge mean = %d, is_cage = %d\n", box_x, box_y, right_means[box_x][box_y], right_is_cage[box_x][box_y]);
         }
-        cage_borders[puzzle_size - 1][box_y][RIGHT] = 1;
-        //printf("(%d, %d) right edge is_cage = 1\n", puzzle_size - 1, box_y);
+        cage_borders[size - 1][box_y][RIGHT] = 1;
+        //printf("(%d, %d) right edge is_cage = 1\n", size - 1, box_y);
     }
-    for (int box_y = 0; box_y < puzzle_size; ++box_y) {
+    for (int box_y = 0; box_y < size; ++box_y) {
         cage_borders[0][box_y][LEFT] = 1;
-        for (int box_x = 1; box_x < puzzle_size; ++box_x) {
+        for (int box_x = 1; box_x < size; ++box_x) {
             cage_borders[box_x][box_y][LEFT] = cage_borders[box_x - 1][box_y][RIGHT];
         }
     }
 
     // look at the bottom edge of each box
-    int bottom_means[puzzle_size][puzzle_size - 1];
+    int bottom_means[size][size - 1];
     int bottom_mean_min = -1;
     int bottom_mean_max = -1;
-    for (int box_x = 0; box_x < puzzle_size; ++box_x) {
-        int x_center = (2 * box_x + 1) * (threshold_image->width / puzzle_size / 2);
-        for (int box_y = 0; box_y < (puzzle_size - 1); ++box_y) {
-            int y_center = (box_y + 1) * (threshold_image->height / puzzle_size);
+    for (int box_x = 0; box_x < size; ++box_x) {
+        int x_center = (2 * box_x + 1) * (threshold_image->width / size / 2);
+        for (int box_y = 0; box_y < (size - 1); ++box_y) {
+            int y_center = (box_y + 1) * (threshold_image->height / size);
 
             long total = 0;
             for (int x = x_center - fuzz_along; x <= x_center + fuzz_along; ++x) {
@@ -408,19 +412,19 @@ char *compute_puzzle_cages(IplImage *puzzle, unsigned short puzzle_size) {
         }
     }
 
-    for (int box_x = 0; box_x < puzzle_size; ++box_x) {
-        for (int box_y = 0; box_y < (puzzle_size - 1); ++box_y) {
+    for (int box_x = 0; box_x < size; ++box_x) {
+        for (int box_y = 0; box_y < (size - 1); ++box_y) {
             int delta_min = abs(bottom_means[box_x][box_y] - bottom_mean_min);
             int delta_max = abs(bottom_means[box_x][box_y] - bottom_mean_max);
             cage_borders[box_x][box_y][BOTTOM] = (delta_min < delta_max);
             //printf("(%d, %d) bottom edge mean = %d, delta_min = %d, delta_max = %d, is_cage = %d\n", box_x, box_y, bottom_means[box_x][box_y], delta_min, delta_max, bottom_is_cage[box_x][box_y]);
         }
-        cage_borders[box_x][puzzle_size - 1][BOTTOM] = 1;
-        //printf("(%d, %d) bottom edge is_cage = 1\n", box_x, puzzle_size - 1);
+        cage_borders[box_x][size - 1][BOTTOM] = 1;
+        //printf("(%d, %d) bottom edge is_cage = 1\n", box_x, size - 1);
     }
-    for (int box_x = 0; box_x < puzzle_size; ++box_x) {
+    for (int box_x = 0; box_x < size; ++box_x) {
         cage_borders[box_x][0][TOP] = 1;
-        for (int box_y = 1; box_y < puzzle_size; ++box_y) {
+        for (int box_y = 1; box_y < size; ++box_y) {
             cage_borders[box_x][box_y][TOP] = cage_borders[box_x][box_y - 1][BOTTOM];
         }
     }
@@ -428,9 +432,9 @@ char *compute_puzzle_cages(IplImage *puzzle, unsigned short puzzle_size) {
     //cvNamedWindow("thresh", 1);
     //showSmaller(threshold_image, "thresh");
 
-    int cage_ids[9][9];
-    for (int box_x = 0; box_x < puzzle_size; ++box_x) {
-        for (int box_y = 0; box_y < puzzle_size; ++box_y) {
+    int cage_ids[PUZZLE_SIZE_MAX][PUZZLE_SIZE_MAX];
+    for (int box_x = 0; box_x < size; ++box_x) {
+        for (int box_y = 0; box_y < size; ++box_y) {
             cage_ids[box_x][box_y] = -1;
         }
     }
@@ -438,8 +442,8 @@ char *compute_puzzle_cages(IplImage *puzzle, unsigned short puzzle_size) {
     // pass through the puzzle from top to bottom, left to right, propagating cage_id values
     // through edges which are not cage borders.
     int next_cage_id = 0;
-    for (int box_y = 0; box_y < puzzle_size; ++box_y) {
-        for (int box_x = 0; box_x < puzzle_size; ++box_x) {
+    for (int box_y = 0; box_y < size; ++box_y) {
+        for (int box_x = 0; box_x < size; ++box_x) {
             if (cage_ids[box_x][box_y] == -1) {
                 _explore_cage(next_cage_id++, box_x, box_y, cage_ids, cage_borders);
             }
@@ -447,9 +451,11 @@ char *compute_puzzle_cages(IplImage *puzzle, unsigned short puzzle_size) {
     }
 
     // serialize the cages into string representation
+    static char puzzle_cages[PUZZLE_SIZE_MAX * PUZZLE_SIZE_MAX + 1];
+    static char cage_names[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
     int i = 0;
-    for (int box_y = 0; box_y < puzzle_size; ++box_y) {
-        for (int box_x = 0; box_x < puzzle_size; ++box_x) {
+    for (int box_y = 0; box_y < size; ++box_y) {
+        for (int box_x = 0; box_x < size; ++box_x) {
             puzzle_cages[i++] = cage_names[cage_ids[box_x][box_y]];
         }
     }

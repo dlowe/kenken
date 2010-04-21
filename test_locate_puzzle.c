@@ -278,7 +278,7 @@ int main (int argc, char** argv) {
 
         IplImage *squared_puzzle = square_puzzle(color_image, actual_location);
 
-        unsigned int actual_size = compute_puzzle_size(squared_puzzle);
+        puzzle_size actual_size = compute_puzzle_size(squared_puzzle);
         ok(actual_size == test_case.size, "%s: size=%d, expecting %d", test_case.image, actual_size, test_case.size);
 
         if (fail_n) {
