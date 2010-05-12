@@ -23,7 +23,15 @@ static IplImage *_threshold(IplImage *in) {
     // apply thresholding (converts it to a binary image)
     // block_size observations: higher value does better for images with variable lighting (e.g.
     //   shadows).
-    int block_size = 139;
+    // may eventually need to paramaterize this, to some extent, because the different callers
+    //   seem to do better with different values (e.g. blob location is better with smaller numbers,
+    //   but cage location is better with larger...) but for now, have been able to settle on value
+    //   which works pretty well for most cases.
+    int block_size = (int)(img->width / 10);
+    if ((block_size % 2) == 0) {
+        // must be odd
+        block_size += 1;
+    }
     // constant_reduction observations: magic, but adapting this value to the mean intensity of the
     //   image as a whole seems to help.
     int constant_reduction = (int)(mean_intensity / 3.6 + 0.5);

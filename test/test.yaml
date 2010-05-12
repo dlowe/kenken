@@ -1,14 +1,33 @@
 # a few monkey wrenches
 - image: test/IMG_0715.PNG
-  blob_area: fail screenshot from kenken app, completely hosed :(
+  blob_area: [ [ 20, 74 ], [ 300, 353 ] ]
+  puzzle_location: [ [ 16, 65 ], [ 307, 65 ], [ 297, 353 ], [ 16, 353 ] ]
+  size: 3
+  cages: AABCDDCCD
 - image: test/IMG_0716.PNG
-  blob_area: fail screenshot from kenken app, completely hosed :(
+  blob_area: [ [ 20, 74 ], [ 300, 353 ] ]
+  puzzle_location: [ [ 12, 81 ], [ 304, 60 ], [ 304, 352 ], [ 22, 352 ] ]
+  size: 3
+  cages: ABCADCDDE
 - image: test/IMG_0717.PNG
-  blob_area: fail screenshot from kenken app, completely hosed :(
+  blob_area: [ [ 6, 29 ], [ 307, 359 ] ]
+  # better blob area by decreasing threshold block_size
+  # blob_area: [ [ 19, 71 ], [ 300, 353 ] ]
+  puzzle_location: [ [ 11, 60 ], [ 305, 70 ], [ 305, 353 ], [ 21, 353 ] ]
+  size: 3
+  cages: ABBCCDEED
 - image: test/IMG_0718.PNG
-  blob_area: fail screenshot from kenken app, completely hosed :(
+  blob_area: [ [ 8, 30 ], [ 307, 359 ] ]
+  # better blob area by decreasing threshold block_size
+  # blob_area: [ [ 18, 71 ], [ 300, 353 ] ]
+  puzzle_location: [ [ 16, 66 ], [ 308, 66 ], [ 298, 357 ], [ 16, 346 ] ]
+  size: 3
+  cages: fail ABCDBCDEE
 - image: test/IMG_0719.PNG
-  blob_area: fail screenshot from kenken app, completely hosed :(
+  blob_area: [ [ 16, 97 ], [ 290, 345 ] ]
+  puzzle_location: [ [ 32, 97 ], [ 286, 97 ], [ 286, 346 ], [ 32, 346 ] ]
+  size: 3
+  cages: ABCABDEED
 
 # blob failures
 - image: test/IMG_0667.JPG
@@ -24,7 +43,7 @@
 # cage failures...
 - image: test/IMG_0707.JPG
   blob_area: [ [ 132, 432 ], [ 1013, 1417 ] ]
-  puzzle_location: [ [ 146, 461 ], [ 1013, 431 ], [ 983, 1393 ], [ 120, 1302 ] ]
+  puzzle_location: [ [ 146, 461 ], [ 1013, 431 ], [ 983, 1374 ], [ 120, 1302 ] ]
   size: 4
   cages: fail due to shadow AABBCDBBCDEEFFFE
 - image: test/IMG_0664.JPG
@@ -54,7 +73,7 @@
   cages: fail due to curvature
 - image: test/IMG_0662.JPG
   blob_area: [ [ 23, 378 ], [ 1125, 1487 ] ]
-  puzzle_location: [ [ 65, 381 ], [ 1124, 381 ], [ 1124, 1487 ], [ 31, 1411 ] ]
+  puzzle_location: [ [ 77, 381 ], [ 1124, 381 ], [ 1124, 1487 ], [ 31, 1411 ] ]
   size: 9
   cages: fail due to curvature
 - image: test/IMG_0657.JPG
@@ -93,7 +112,7 @@
   blob_area: [ [ 139, 372 ], [ 1172, 1453 ] ]
   puzzle_location: [ [ 133, 535 ], [ 981, 370 ], [ 1170, 1337 ], [ 229, 1455 ] ]
   size: 6
-  cages: ABCDEFABDDEFGGHIJJKLHIMNKLOPMNQOORRN
+  cages: fail due to curvature ABCDEFABDDEFGGHIJJKLHIMNKLOPMNQOORRN
 - image: test/IMG_0648.JPG
   blob_area: [ [ 109, 264 ], [ 1200, 1422 ] ]
   puzzle_location: [ [ 114, 353 ], [ 1141, 262 ], [ 1201, 1411 ], [ 114, 1411 ] ]
@@ -108,12 +127,12 @@
   blob_area: [ [ 55, 416 ], [ 1108, 1521 ] ]
   puzzle_location: [ [ 134, 416 ], [ 1108, 449 ], [ 1053, 1520 ], [ 55, 1382 ] ]
   size: 8
-  cages: AABCDDEFGABCCCEFHHHIIJJKLLMNIOOKPPMNNOOQRRRSSTTQUUVVVVWXUUVVYYWX
+  cages: fail due to curvature AABCDDEFGABCCCEFHHHIIJJKLLMNIOOKPPMNNOOQRRRSSTTQUUVVVVWXUUVVYYWX
 - image: test/IMG_0668.JPG
   blob_area: [ [ 124, 393 ], [ 1181, 1466 ] ]
   puzzle_location: [ [ 149, 411 ], [ 1117, 394 ], [ 1173, 1463 ], [ 132, 1427 ] ]
   size: 8
-  cages: ABBCDEEFAGGCDHHFIIJJKKLLMMNOOPQQRRNSSPTTUUVWXYZZaaVWXYbbaaccddbb
+  cages: fail due to curvature ABBCDEEFAGGCDHHFIIJJKKLLMMNOOPQQRRNSSPTTUUVWXYZZaaVWXYbbaaccddbb
 - image: test/IMG_0696.JPG
   blob_area: [ [ 155, 333 ], [ 1037, 1217 ] ]
   puzzle_location: [ [ 198, 331 ], [ 1008, 359 ], [ 1037, 1205 ], [ 158, 1175 ] ]
@@ -124,11 +143,6 @@
   puzzle_location: [ [ 371, 608 ], [ 1004, 586 ], [ 979, 1300 ], [ 284, 1227 ] ]
   size: 4
   cages: ABCCABDEFGGEFHHI
-- image: test/IMG_0646.JPG
-  blob_area: [ [ 139, 372 ], [ 1172, 1453 ] ]
-  puzzle_location: [ [ 133, 535 ], [ 981, 370 ], [ 1170, 1337 ], [ 229, 1455 ] ]
-  size: 6
-  cages: ABCDEFABDDEFGGHIJJKLHIMNKLOPMNQOORRN
 - image: test/IMG_0697.JPG
   blob_area: [ [ 133, 448 ], [ 993, 1318 ] ]
   puzzle_location: [ [ 140, 495 ], [ 962, 441 ], [ 993, 1315 ], [ 140, 1315 ] ]
@@ -146,12 +160,12 @@
   cages: AABBCDDECFFEGGHH
 - image: test/IMG_0708.JPG
   blob_area: [ [ 128, 388 ], [ 1042, 1366 ] ]
-  puzzle_location: [ [ 129, 400 ], [ 973, 411 ], [ 1038, 1314 ], [ 163, 1377 ] ]
+  puzzle_location: [ [ 129, 390 ], [ 973, 411 ], [ 1038, 1314 ], [ 163, 1377 ] ]
   size: 4
   cages: ABCCDBEEDFFGDHHG
 - image: test/IMG_0709.JPG
   blob_area: [ [ 0, 273 ], [ 1126, 1471 ] ]
-  puzzle_location: [ [ 244, 297 ], [ 1125, 485 ], [ 887, 1450 ], [ -10, 1169 ] ]
+  puzzle_location: [ [ 244, 297 ], [ 1125, 485 ], [ 887, 1450 ], [ -10, 1167 ] ]
   size: 4
   cages: AAABCCBBDCEEDFGG
 - image: test/IMG_0694.JPG
@@ -161,7 +175,7 @@
   cages: ABBACDCCD
 - image: test/IMG_0695.JPG
   blob_area: [ [ 88, 405 ], [ 1132, 1441 ] ]
-  puzzle_location: [ [ 272, 405 ], [ 1123, 504 ], [ 1021, 1436 ], [ 88, 1268 ] ]
+  puzzle_location: [ [ 292, 405 ], [ 1123, 504 ], [ 1021, 1436 ], [ 88, 1268 ] ]
   size: 3
   cages: AABCCBCDD
 - image: test/IMG_0698.JPG
@@ -211,7 +225,7 @@
   cages: ABBCADDDEEFGHHFG
 - image: test/IMG_0711.JPG
   blob_area: [ [ 36, 346 ], [ 1120, 1437 ] ]
-  puzzle_location: [ [ 314, 360 ], [ 1125, 577 ], [ 880, 1414 ], [ 49, 1144 ] ]
+  puzzle_location: [ [ 318, 360 ], [ 1125, 577 ], [ 880, 1414 ], [ 49, 1144 ] ]
   size: 4
   cages: ABCCABBDEFDDEFGG
 - image: test/IMG_0670.JPG
