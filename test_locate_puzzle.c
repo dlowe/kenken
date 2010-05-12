@@ -10,10 +10,13 @@
 
 typedef struct test_case_s {
     char           *image;
+    unsigned short  puzzle_location_fail;
     CvPoint         puzzle_location[4];
+    unsigned short  blob_area_fail;
     CvPoint         blob_area[2];
+    unsigned short  size_fail;
     unsigned short  size;
-    unsigned short  failing;
+    unsigned short  cages_fail;
     char           *cages;
 } test_case_t;
 
@@ -71,6 +74,15 @@ void show_with_cages(IplImage *in, int actual_size, char *cages, char *window_na
     showSmaller(squared_puzzle, window_name);
 }
 
+static unsigned short is_fail_node(yaml_node_t *node) {
+    if (node->type == YAML_SCALAR_NODE) {
+        if (strncmp((char *)node->data.scalar.value, "fail", 4) == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 char *DEFAULT_CAGES = "";
 int main (int argc, char** argv) {
     yaml_parser_t parser;
@@ -93,14 +105,17 @@ int main (int argc, char** argv) {
     for (yaml_node_item_t *test_case_id = n->data.sequence.items.start; test_case_id < n->data.sequence.items.top; ++test_case_id) {
         test_case_t  test_case;
         test_case.image = NULL;
-        test_case.failing = 0;
+        test_case.puzzle_location_fail = 0;
         test_case.puzzle_location[0] = cvPoint(0, 0);
         test_case.puzzle_location[1] = cvPoint(0, 0);
         test_case.puzzle_location[2] = cvPoint(0, 0);
         test_case.puzzle_location[3] = cvPoint(0, 0);
+        test_case.blob_area_fail = 0;
         test_case.blob_area[0] = cvPoint(0, 0);
         test_case.blob_area[1] = cvPoint(0, 0);
+        test_case.size_fail = 0;
         test_case.size = 0;
+        test_case.cages_fail = 0;
         test_case.cages = NULL;
 
         yaml_node_t *test_case_node = yaml_document_get_node(&document, *test_case_id);
@@ -118,92 +133,97 @@ int main (int argc, char** argv) {
                 test_case.image = (char *)value->data.scalar.value;
             }
             if (strcmp((const char *)key->data.scalar.value, "cages") == 0) {
-                test_case.cages = (char *)value->data.scalar.value;
+                if (! (test_case.cages_fail = is_fail_node(value))) {
+                    test_case.cages = (char *)value->data.scalar.value;
+                }
             }
             if (strcmp((const char *)key->data.scalar.value, "size") == 0) {
-                test_case.size  = atoi((char *)value->data.scalar.value);
-            }
-            if (strcmp((const char *)key->data.scalar.value, "failing") == 0) {
-                test_case.failing = 1;
+                if (! (test_case.size_fail = is_fail_node(value))) {
+                    test_case.size  = atoi((char *)value->data.scalar.value);
+                }
             }
             if (strcmp((const char *)key->data.scalar.value, "puzzle_location") == 0) {
-                if (value->type != YAML_SEQUENCE_NODE) {
-                    printf("puzzle_location value should be a sequence of points\n");
-                    exit(255);
-                }
-                int i = 0;
-                for (yaml_node_item_t *point_id = value->data.sequence.items.start; point_id < value->data.sequence.items.top; ++point_id) {
-                    if (i > 3) {
-                        printf("puzzle_location should specify exactly 4 points (got more)\n");
+                if (! (test_case.puzzle_location_fail = is_fail_node(value))) {
+                    if (value->type != YAML_SEQUENCE_NODE) {
+                        printf("puzzle_location value should be a sequence of points\n");
                         exit(255);
                     }
+                    int i = 0;
+                    for (yaml_node_item_t *point_id = value->data.sequence.items.start; point_id < value->data.sequence.items.top; ++point_id) {
+                        if (i > 3) {
+                            printf("puzzle_location should specify exactly 4 points (got more)\n");
+                            exit(255);
+                        }
 
-                    yaml_node_t *point_node = yaml_document_get_node(&document, *point_id);
+                        yaml_node_t *point_node = yaml_document_get_node(&document, *point_id);
 
-                    if (point_node->type != YAML_SEQUENCE_NODE) {
-                        printf("puzzle_location point[%d] should be a sequence\n", i);
-                        exit(255);
-                    }
-                    yaml_node_item_t *x_id = point_node->data.sequence.items.start;
-                    yaml_node_t *x_node = yaml_document_get_node(&document, *x_id);
-                    if (x_node->type != YAML_SCALAR_NODE) {
-                        printf("puzzle_location point[%d].x should be a scalar\n", i);
-                        exit(255);
-                    }
-                    yaml_node_item_t *y_id = x_id + 1;
-                    yaml_node_t *y_node = yaml_document_get_node(&document, *y_id);
-                    if (y_node->type != YAML_SCALAR_NODE) {
-                        printf("puzzle_location point[%d].y should be a scalar\n", i);
-                        exit(255);
-                    }
+                        if (point_node->type != YAML_SEQUENCE_NODE) {
+                            printf("puzzle_location point[%d] should be a sequence\n", i);
+                            exit(255);
+                        }
+                        yaml_node_item_t *x_id = point_node->data.sequence.items.start;
+                        yaml_node_t *x_node = yaml_document_get_node(&document, *x_id);
+                        if (x_node->type != YAML_SCALAR_NODE) {
+                            printf("puzzle_location point[%d].x should be a scalar\n", i);
+                            exit(255);
+                        }
+                        yaml_node_item_t *y_id = x_id + 1;
+                        yaml_node_t *y_node = yaml_document_get_node(&document, *y_id);
+                        if (y_node->type != YAML_SCALAR_NODE) {
+                            printf("puzzle_location point[%d].y should be a scalar\n", i);
+                            exit(255);
+                        }
 
-                    test_case.puzzle_location[i].x = atoi((const char *)x_node->data.scalar.value);
-                    test_case.puzzle_location[i].y = atoi((const char *)y_node->data.scalar.value);
-                    ++i;
-                }
-                if (i != 4) {
-                    printf("puzzle_location should specify exactly 4 points (got %d)\n", (i+1));
-                    exit(255);
+                        test_case.puzzle_location[i].x = atoi((const char *)x_node->data.scalar.value);
+                        test_case.puzzle_location[i].y = atoi((const char *)y_node->data.scalar.value);
+                        ++i;
+                    }
+                    if (i != 4) {
+                        printf("puzzle_location should specify exactly 4 points (got %d)\n", (i+1));
+                        exit(255);
+                    }
                 }
             }
             if (strcmp((const char *)key->data.scalar.value, "blob_area") == 0) {
-                if (value->type != YAML_SEQUENCE_NODE) {
-                    printf("blob_area value should be a sequence of points\n");
-                    exit(255);
-                }
-                int i = 0;
-                for (yaml_node_item_t *point_id = value->data.sequence.items.start; point_id < value->data.sequence.items.top; ++point_id) {
-                    if (i > 1) {
-                        printf("blob_area should specify exactly 2 points (got more)\n");
+                if (! (test_case.blob_area_fail = is_fail_node(value))) {
+                    if (value->type != YAML_SEQUENCE_NODE) {
+                        printf("blob_area value should be a sequence of points\n");
                         exit(255);
                     }
+                    int i = 0;
+                    for (yaml_node_item_t *point_id = value->data.sequence.items.start; point_id < value->data.sequence.items.top; ++point_id) {
+                        if (i > 1) {
+                            printf("blob_area should specify exactly 2 points (got more)\n");
+                            exit(255);
+                        }
 
-                    yaml_node_t *point_node = yaml_document_get_node(&document, *point_id);
+                        yaml_node_t *point_node = yaml_document_get_node(&document, *point_id);
 
-                    if (point_node->type != YAML_SEQUENCE_NODE) {
-                        printf("blob_area point[%d] should be a sequence\n", i);
-                        exit(255);
-                    }
-                    yaml_node_item_t *x_id = point_node->data.sequence.items.start;
-                    yaml_node_t *x_node = yaml_document_get_node(&document, *x_id);
-                    if (x_node->type != YAML_SCALAR_NODE) {
-                        printf("blob_area point[%d].x should be a scalar\n", i);
-                        exit(255);
-                    }
-                    yaml_node_item_t *y_id = x_id + 1;
-                    yaml_node_t *y_node = yaml_document_get_node(&document, *y_id);
-                    if (y_node->type != YAML_SCALAR_NODE) {
-                        printf("blob_area point[%d].y should be a scalar\n", i);
-                        exit(255);
-                    }
+                        if (point_node->type != YAML_SEQUENCE_NODE) {
+                            printf("blob_area point[%d] should be a sequence\n", i);
+                            exit(255);
+                        }
+                        yaml_node_item_t *x_id = point_node->data.sequence.items.start;
+                        yaml_node_t *x_node = yaml_document_get_node(&document, *x_id);
+                        if (x_node->type != YAML_SCALAR_NODE) {
+                            printf("blob_area point[%d].x should be a scalar\n", i);
+                            exit(255);
+                        }
+                        yaml_node_item_t *y_id = x_id + 1;
+                        yaml_node_t *y_node = yaml_document_get_node(&document, *y_id);
+                        if (y_node->type != YAML_SCALAR_NODE) {
+                            printf("blob_area point[%d].y should be a scalar\n", i);
+                            exit(255);
+                        }
 
-                    test_case.blob_area[i].x = atoi((const char *)x_node->data.scalar.value);
-                    test_case.blob_area[i].y = atoi((const char *)y_node->data.scalar.value);
-                    ++i;
-                }
-                if (i != 2) {
-                    printf("blob_area should specify exactly 2 points (got %d)\n", (i+1));
-                    exit(255);
+                        test_case.blob_area[i].x = atoi((const char *)x_node->data.scalar.value);
+                        test_case.blob_area[i].y = atoi((const char *)y_node->data.scalar.value);
+                        ++i;
+                    }
+                    if (i != 2) {
+                        printf("blob_area should specify exactly 2 points (got %d)\n", (i+1));
+                        exit(255);
+                    }
                 }
             }
         }
@@ -216,11 +236,12 @@ int main (int argc, char** argv) {
             test_case.cages = DEFAULT_CAGES;
         }
 
-        if (test_case.failing) {
+        IplImage *color_image = cvLoadImage(test_case.image, 1);
+
+        if (test_case.blob_area_fail) {
             continue;
         }
 
-        IplImage *color_image = cvLoadImage(test_case.image, 1);
         c_blob *blob = _locate_puzzle_blob(color_image);
 
         ok(abs(c_blob_minx(blob) - test_case.blob_area[0].x) < BLOB_FUZZ, "%s: blob top/left: x=%d, expecting %d", test_case.image, c_blob_minx(blob), test_case.blob_area[0].x);
@@ -241,6 +262,10 @@ int main (int argc, char** argv) {
             cvWaitKey(0);
             cvDestroyWindow("result");
             exit(fail_n);
+        }
+
+        if (test_case.puzzle_location_fail) {
+            continue;
         }
 
         const CvPoint2D32f *actual_location = locate_puzzle(color_image);
@@ -274,6 +299,10 @@ int main (int argc, char** argv) {
             cvWaitKey(0);
             cvDestroyWindow("result");
             exit(fail_n);
+        }
+
+        if (test_case.size_fail) {
+            continue;
         }
 
         IplImage *squared_puzzle = square_puzzle(color_image, actual_location);
@@ -325,6 +354,10 @@ int main (int argc, char** argv) {
             cvWaitKey(0);
             cvDestroyWindow("result");
             exit(fail_n);
+        }
+
+        if (test_case.cages_fail) {
+            continue;
         }
 
         char *actual_cages = compute_puzzle_cages(squared_puzzle, actual_size);
