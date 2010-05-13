@@ -3,9 +3,8 @@
 
 #include "cv.h"
 #include "highgui.h"
-#include "c_blob.h"
 
-c_blob *_locate_puzzle_blob(IplImage *in);
+//c_blob *_locate_puzzle_blob(IplImage *in);
 
 const CvPoint2D32f* locate_puzzle(IplImage *in);
 

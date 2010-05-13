@@ -2,7 +2,6 @@
 
 #include "cv.h"
 #include "kenken.h"
-#include "c_blob.h"
 
 static IplImage *_threshold(IplImage *in) {
     IplImage *img = cvCreateImage(cvGetSize(in), 8, 1);
@@ -37,7 +36,7 @@ static IplImage *_threshold(IplImage *in) {
     int constant_reduction = (int)(mean_intensity / 3.6 + 0.5);
 
     IplImage *threshold_image = cvCreateImage(cvGetSize(img), 8, 1);
-    cvAdaptiveThreshold(img, threshold_image, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY,
+    cvAdaptiveThreshold(img, threshold_image, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY_INV,
         block_size, constant_reduction);
     cvReleaseImage(&img);
 
@@ -48,14 +47,14 @@ static IplImage *_threshold(IplImage *in) {
         for (int y = 0; y < threshold_image->height; ++y) {
             CvScalar s = cvGet2D(threshold_image, y, x);
             int ink_neighbors = 0;
-            if (s.val[0] == 0) {
+            if (s.val[0] == 255) {
                 for (int dx = -1; dx <= 1; ++dx) {
                     if ((x + dx >= 0) && (x + dx < threshold_image->width)) {
                         for (int dy = -1; dy <= 1; ++dy) {
                             if ((y + dy >= 0) && (y + dy < threshold_image->height)) {
                                 if (! ((dy == 0) && (dx == 0))) {
                                     CvScalar m = cvGet2D(threshold_image, y + dy, x + dx);
-                                    if (m.val[0] == 0) {
+                                    if (m.val[0] == 255) {
                                         ++ink_neighbors;
                                         if (ink_neighbors > min_blob_size) {
                                             break;
@@ -70,7 +69,7 @@ static IplImage *_threshold(IplImage *in) {
                     }
                 }
                 if (ink_neighbors <= min_blob_size) {
-                    s.val[0] = 255;
+                    s.val[0] = 0;
                     cvSet2D(threshold_image, y, x, s);
                 }
             }
@@ -80,18 +79,30 @@ static IplImage *_threshold(IplImage *in) {
     return threshold_image;
 }
 
-c_blob *_locate_puzzle_blob(IplImage *in) {
+static CvSeq *_locate_puzzle_contour(IplImage *in) {
     IplImage *threshold_image = _threshold(in);
 
-    //cvNamedWindow("thresh", 1);
-    //showSmaller(threshold_image, "thresh");
+    CvMemStorage* storage = cvCreateMemStorage(0);
+    CvSeq* contour = 0;
 
-    c_blob *blob = c_blob_get_biggest_ink_blob(threshold_image);
-    cvReleaseImage(&threshold_image);
-    return blob;
+    cvFindContours( threshold_image, storage, &contour, sizeof(CvContour), CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
+
+    double max_area    = fabs(cvContourArea(contour, CV_WHOLE_SEQ));
+    CvSeq *max_contour = contour;
+    for( CvSeq *p = contour; p != 0; p = p->h_next )
+    {
+        double area = fabs(cvContourArea(p, CV_WHOLE_SEQ));
+        if (area > max_area) {
+            max_area    = area;
+            max_contour = p;
+        }
+        //printf("%f\n", area);
+    }
+
+    return max_contour;
 }
 
-void intersect(CvPoint *a, CvPoint *b, CvPoint2D32f *i) {
+static void intersect(CvPoint *a, CvPoint *b, CvPoint2D32f *i) {
    int x[5] = { 0, a[0].x, a[1].x, b[0].x, b[1].x };
    int y[5] = { 0, a[0].y, a[1].y, b[0].y, b[1].y };
 
@@ -103,12 +114,15 @@ void intersect(CvPoint *a, CvPoint *b, CvPoint2D32f *i) {
 }
 
 const CvPoint2D32f* locate_puzzle(IplImage *in) {
-    c_blob *currentBlob = _locate_puzzle_blob(in);
+    CvSeq *contour = _locate_puzzle_contour(in);
+    //c_blob *currentBlob = _locate_puzzle_blob(in);
 
     // draw the blob onto an otherwise blank image
     IplImage *hough_image = cvCreateImage(cvGetSize(in), 8, 1);
-    c_blob_fill(currentBlob, hough_image);
-    c_blob_destroy(currentBlob);
+    //c_blob_fill(currentBlob, hough_image);
+    CvScalar color = CV_RGB(255, 255, 255);
+    cvDrawContours(hough_image, contour, color, color, -1, CV_FILLED, 8, cvPoint(0, 0) );
+    //c_blob_destroy(currentBlob);
 
     //cvNamedWindow("hough", 1);
     //showSmaller(hough_image, "hough");
@@ -117,8 +131,12 @@ const CvPoint2D32f* locate_puzzle(IplImage *in) {
     CvMemStorage* storage = cvCreateMemStorage(0);
     CvSeq* lines = 0;
 
-    int minimum_line_length = in->width / 2;
-    lines = cvHoughLines2(hough_image, storage, CV_HOUGH_PROBABILISTIC, 1, CV_PI/90, 60, minimum_line_length, 40);
+    double distance_resolution = 1;
+    double angle_resolution    = CV_PI / 60;
+    int threshold              = 60;
+    int minimum_line_length    = in->width / 2;
+    int maximum_join_gap       = in->width / 10;
+    lines = cvHoughLines2(hough_image, storage, CV_HOUGH_PROBABILISTIC,  distance_resolution, angle_resolution, threshold, minimum_line_length, maximum_join_gap);
     cvReleaseImage(&hough_image);
 
     double most_horizontal = INFINITY;
@@ -169,21 +187,22 @@ const CvPoint2D32f* locate_puzzle(IplImage *in) {
             }
         }
     }
+    //printf("number of lines: %d\n", lines->total);
     if ((top == -1) || (left == -1) || (bottom == -1) || (right == -1)) {
         return NULL;
     }
 
     CvPoint *top_line    = (CvPoint*)cvGetSeqElem(lines,top);
-    //cvLine(in, top_line[0], top_line[1], CV_RGB(0, 0, 255), 1);
+    cvLine(in, top_line[0], top_line[1], CV_RGB(0, 0, 255), 1, 0, 0);
 
     CvPoint *bottom_line = (CvPoint*)cvGetSeqElem(lines,bottom);
-    //cvLine(in, bottom_line[0], bottom_line[1], CV_RGB(0, 255, 255), 1);
+    cvLine(in, bottom_line[0], bottom_line[1], CV_RGB(0, 255, 255), 1, 0, 0);
 
     CvPoint *left_line   = (CvPoint*)cvGetSeqElem(lines,left);
-    //cvLine(in, left_line[0], left_line[1], CV_RGB(0, 255, 0), 1);
+    cvLine(in, left_line[0], left_line[1], CV_RGB(0, 255, 0), 1, 0, 0);
 
     CvPoint *right_line  = (CvPoint*)cvGetSeqElem(lines,right);
-    //cvLine(in, right_line[0], right_line[1], CV_RGB(255, 0, 0), 1);
+    cvLine(in, right_line[0], right_line[1], CV_RGB(255, 0, 0), 1, 0, 0);
 
     CvPoint2D32f *coordinates;
     coordinates = malloc(sizeof(CvPoint2D32f) * 4);
@@ -238,7 +257,7 @@ IplImage *square_puzzle(IplImage *in, const CvPoint2D32f *location) {
 }
 
 static int _compare_means(void *means, const void *guess_a, const void *guess_b) {
-    return ((unsigned long *)means)[*((unsigned short *)guess_a)] - ((unsigned long *)means)[*((unsigned short *)guess_b)];
+    return ((unsigned long *)means)[*((unsigned short *)guess_b)] - ((unsigned long *)means)[*((unsigned short *)guess_a)];
 }
 
 enum { PUZZLE_SIZE_MIN = 3 };
@@ -287,7 +306,7 @@ puzzle_size compute_puzzle_size(IplImage *puzzle) {
     // evenly divisible sizes are easily confused. Err on the side of the larger size puzzle.
     puzzle_size confusable[][2] = { { 4, 8 }, { 3, 9 }, { 3, 6 } };
     for (int i = 0; i < (sizeof(confusable) / sizeof(puzzle_size) / 2); ++i) {
-        if ((guesses[0] == confusable[i][0]) && (guesses[1] == confusable[i][1]) && (means[guesses[1]] - means[guesses[0]] < means[guesses[2]] - means[guesses[1]])) {
+        if ((guesses[0] == confusable[i][0]) && (guesses[1] == confusable[i][1]) && (means[guesses[0]] - means[guesses[1]] < means[guesses[1]] - means[guesses[2]])) {
             return confusable[i][1];
         }
     }
@@ -390,7 +409,7 @@ static void _find_cage_borders(IplImage *threshold_image, puzzle_size size, bord
         for (box_across = 0; box_across < (size - 1); ++box_across) {
             int delta_min = abs(means[box_across][box_along] - mean_min);
             int delta_max = abs(means[box_across][box_along] - mean_max);
-            *(_getborder(cage_borders, direction, box_across, box_along)) = (delta_min < delta_max);
+            *(_getborder(cage_borders, direction, box_across, box_along)) = (delta_max < delta_min);
         }
         *(_getborder(cage_borders, direction, box_across, box_along)) = 1;
     }
