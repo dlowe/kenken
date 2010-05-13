@@ -5,15 +5,12 @@
 #include "kenken.h"
 #include "yaml.h"
 
-#define BLOB_FUZZ 33
 #define LOCATION_FUZZ 22
 
 typedef struct test_case_s {
     char           *image;
     unsigned short  puzzle_location_fail;
     CvPoint         puzzle_location[4];
-    unsigned short  blob_area_fail;
-    CvPoint         blob_area[2];
     unsigned short  size_fail;
     unsigned short  size;
     unsigned short  cages_fail;
@@ -110,9 +107,6 @@ int main (int argc, char** argv) {
         test_case.puzzle_location[1] = cvPoint(0, 0);
         test_case.puzzle_location[2] = cvPoint(0, 0);
         test_case.puzzle_location[3] = cvPoint(0, 0);
-        test_case.blob_area_fail = 0;
-        test_case.blob_area[0] = cvPoint(0, 0);
-        test_case.blob_area[1] = cvPoint(0, 0);
         test_case.size_fail = 0;
         test_case.size = 0;
         test_case.cages_fail = 0;
@@ -184,48 +178,6 @@ int main (int argc, char** argv) {
                     }
                 }
             }
-            if (strcmp((const char *)key->data.scalar.value, "blob_area") == 0) {
-                if (! (test_case.blob_area_fail = is_fail_node(value))) {
-                    if (value->type != YAML_SEQUENCE_NODE) {
-                        printf("blob_area value should be a sequence of points\n");
-                        exit(255);
-                    }
-                    int i = 0;
-                    for (yaml_node_item_t *point_id = value->data.sequence.items.start; point_id < value->data.sequence.items.top; ++point_id) {
-                        if (i > 1) {
-                            printf("blob_area should specify exactly 2 points (got more)\n");
-                            exit(255);
-                        }
-
-                        yaml_node_t *point_node = yaml_document_get_node(&document, *point_id);
-
-                        if (point_node->type != YAML_SEQUENCE_NODE) {
-                            printf("blob_area point[%d] should be a sequence\n", i);
-                            exit(255);
-                        }
-                        yaml_node_item_t *x_id = point_node->data.sequence.items.start;
-                        yaml_node_t *x_node = yaml_document_get_node(&document, *x_id);
-                        if (x_node->type != YAML_SCALAR_NODE) {
-                            printf("blob_area point[%d].x should be a scalar\n", i);
-                            exit(255);
-                        }
-                        yaml_node_item_t *y_id = x_id + 1;
-                        yaml_node_t *y_node = yaml_document_get_node(&document, *y_id);
-                        if (y_node->type != YAML_SCALAR_NODE) {
-                            printf("blob_area point[%d].y should be a scalar\n", i);
-                            exit(255);
-                        }
-
-                        test_case.blob_area[i].x = atoi((const char *)x_node->data.scalar.value);
-                        test_case.blob_area[i].y = atoi((const char *)y_node->data.scalar.value);
-                        ++i;
-                    }
-                    if (i != 2) {
-                        printf("blob_area should specify exactly 2 points (got %d)\n", (i+1));
-                        exit(255);
-                    }
-                }
-            }
         }
 
         if (test_case.image == NULL) {
@@ -237,34 +189,6 @@ int main (int argc, char** argv) {
         }
 
         IplImage *color_image = cvLoadImage(test_case.image, 1);
-
-        if (test_case.blob_area_fail) {
-            continue;
-        }
-
-#if 0
-        c_blob *blob = _locate_puzzle_blob(color_image);
-
-        ok(abs(c_blob_minx(blob) - test_case.blob_area[0].x) < BLOB_FUZZ, "%s: blob top/left: x=%d, expecting %d", test_case.image, c_blob_minx(blob), test_case.blob_area[0].x);
-        ok(abs(c_blob_miny(blob) - test_case.blob_area[0].y) < BLOB_FUZZ, "%s: blob top/left: y=%d, expecting %d", test_case.image, c_blob_miny(blob), test_case.blob_area[0].y);
-        ok(abs(c_blob_maxx(blob) - test_case.blob_area[1].x) < BLOB_FUZZ, "%s: blob bottom/right: x=%d, expecting %d", test_case.image, c_blob_maxx(blob), test_case.blob_area[1].x);
-        ok(abs(c_blob_maxy(blob) - test_case.blob_area[1].y) < BLOB_FUZZ, "%s: blob bottom/right: y=%d, expecting %d", test_case.image, c_blob_maxy(blob), test_case.blob_area[1].y);
-
-        if (fail_n) {
-            cvNamedWindow("result", 1);
-
-            // expected
-            cvRectangle(color_image, test_case.blob_area[0], test_case.blob_area[1], CV_RGB(0,255,0), 1, 8, 0);
-
-            // actual
-            c_blob_fill(blob, color_image);
-
-            showSmaller(color_image, "result");
-            cvWaitKey(0);
-            cvDestroyWindow("result");
-            exit(fail_n);
-        }
-#endif
 
         if (test_case.puzzle_location_fail) {
             continue;

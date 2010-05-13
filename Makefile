@@ -10,7 +10,7 @@ OBJECTS := kenken.o
 all: test
 
 test_locate_puzzle: $(OBJECTS) test_locate_puzzle.o
-	$(CC) $(CFLAGS) $(OBJECTS) test_locate_puzzle.o -lm -lcv -lhighgui -lcxcore -lblob -lyaml -o $@
+	$(CC) $(CFLAGS) $(OBJECTS) test_locate_puzzle.o -lm -lcv -lhighgui -lcxcore -lyaml -o $@
 
 test: test_locate_puzzle
 	./test_locate_puzzle

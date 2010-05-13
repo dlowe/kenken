@@ -4,8 +4,6 @@
 #include "cv.h"
 #include "highgui.h"
 
-//c_blob *_locate_puzzle_blob(IplImage *in);
-
 const CvPoint2D32f* locate_puzzle(IplImage *in);
 
 IplImage *square_puzzle(IplImage *in, const CvPoint2D32f *location);

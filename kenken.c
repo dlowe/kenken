@@ -23,7 +23,7 @@ static IplImage *_threshold(IplImage *in) {
     // block_size observations: higher value does better for images with variable lighting (e.g.
     //   shadows).
     // may eventually need to paramaterize this, to some extent, because the different callers
-    //   seem to do better with different values (e.g. blob location is better with smaller numbers,
+    //   seem to do better with different values (e.g. contour location is better with smaller numbers,
     //   but cage location is better with larger...) but for now, have been able to settle on value
     //   which works pretty well for most cases.
     int block_size = (int)(img->width / 10);
@@ -40,8 +40,7 @@ static IplImage *_threshold(IplImage *in) {
         block_size, constant_reduction);
     cvReleaseImage(&img);
 
-    // before blobbing, let's try to get rid of "noise" spots. The blob algorithm is very slow unless
-    // these are cleaned up...
+    // try to get rid of "noise" spots.
     int min_blob_size = 2;
     for (int x = 0; x < threshold_image->width; ++x) {
         for (int y = 0; y < threshold_image->height; ++y) {
@@ -115,14 +114,11 @@ static void intersect(CvPoint *a, CvPoint *b, CvPoint2D32f *i) {
 
 const CvPoint2D32f* locate_puzzle(IplImage *in) {
     CvSeq *contour = _locate_puzzle_contour(in);
-    //c_blob *currentBlob = _locate_puzzle_blob(in);
 
-    // draw the blob onto an otherwise blank image
+    // draw the contour onto an otherwise blank image
     IplImage *hough_image = cvCreateImage(cvGetSize(in), 8, 1);
-    //c_blob_fill(currentBlob, hough_image);
     CvScalar color = CV_RGB(255, 255, 255);
     cvDrawContours(hough_image, contour, color, color, -1, CV_FILLED, 8, cvPoint(0, 0) );
-    //c_blob_destroy(currentBlob);
 
     //cvNamedWindow("hough", 1);
     //showSmaller(hough_image, "hough");
