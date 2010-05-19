@@ -19,7 +19,7 @@ typedef struct test_case_s {
 
 static unsigned int test_n = 1;
 static unsigned int fail_n = 0;
-unsigned short ok (unsigned short condition, char *description, ...) {
+static unsigned short ok (unsigned short condition, char *description, ...) {
     va_list args;
     char description_buffer[1000];
 
@@ -34,7 +34,7 @@ unsigned short ok (unsigned short condition, char *description, ...) {
     return condition;
 }
 
-void show_with_cages(IplImage *in, int actual_size, char *cages, char *window_name) {
+static void show_with_cages(IplImage *in, int actual_size, char *cages, char *window_name) {
     IplImage *squared_puzzle = cvCreateImage(cvGetSize(in), 8, in->nChannels);
     cvCopy(in, squared_puzzle, NULL);
     IplImage *img = cvCreateImage(cvGetSize(squared_puzzle), 8, 1);
@@ -82,6 +82,8 @@ static unsigned short is_fail_node(yaml_node_t *node) {
 
 char *DEFAULT_CAGES = "";
 int main (int argc, char** argv) {
+    unsigned short show_annotations = 1;
+
     yaml_parser_t parser;
     yaml_document_t document;
 
@@ -194,13 +196,21 @@ int main (int argc, char** argv) {
             continue;
         }
 
-        const CvPoint2D32f *actual_location = locate_puzzle(color_image);
+        IplImage *locate_puzzle_annotated;
+        const CvPoint2D32f *actual_location = locate_puzzle(color_image, &locate_puzzle_annotated);
 
         if (ok(actual_location != NULL, "%s: puzzle found", test_case.image)) {
             for (int i = 0; i < 4; ++i) {
                 ok(abs(actual_location[i].x - test_case.puzzle_location[i].x) < LOCATION_FUZZ, "%s: point %d: x=%.0f, expecting %d", test_case.image, i, actual_location[i].x, test_case.puzzle_location[i].x);
                 ok(abs(actual_location[i].y - test_case.puzzle_location[i].y) < LOCATION_FUZZ, "%s: point %d: y=%.0f, expecting %d", test_case.image, i, actual_location[i].y, test_case.puzzle_location[i].y);
             }
+        }
+
+        if (show_annotations) {
+            char *window_name = malloc(strlen("locate_puzzle ") + strlen(test_case.image) + 1);
+            sprintf(window_name, "locate_puzzle %s", test_case.image);
+            cvNamedWindow(window_name, 1);
+            showSmaller(locate_puzzle_annotated, window_name);
         }
 
         if (fail_n) {
@@ -304,6 +314,10 @@ int main (int argc, char** argv) {
     }
 
     yaml_document_delete(&document);
+
+    if (show_annotations) {
+        cvWaitKey(0);
+    }
 
     exit(fail_n);
 }

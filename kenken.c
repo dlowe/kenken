@@ -112,16 +112,15 @@ static void intersect(CvPoint *a, CvPoint *b, CvPoint2D32f *i) {
    return;
 }
 
-const CvPoint2D32f* locate_puzzle(IplImage *in) {
+const CvPoint2D32f* locate_puzzle(IplImage *in, IplImage **annotated) {
     CvSeq *contour = _locate_puzzle_contour(in);
+
+    *annotated = cvCloneImage(in);
 
     // draw the contour onto an otherwise blank image
     IplImage *hough_image = cvCreateImage(cvGetSize(in), 8, 1);
     CvScalar color = CV_RGB(255, 255, 255);
     cvDrawContours(hough_image, contour, color, color, -1, CV_FILLED, 8, cvPoint(0, 0) );
-
-    //cvNamedWindow("hough", 1);
-    //showSmaller(hough_image, "hough");
 
     // find lines using Hough transform
     CvMemStorage* storage = cvCreateMemStorage(0);
@@ -133,6 +132,7 @@ const CvPoint2D32f* locate_puzzle(IplImage *in) {
     int minimum_line_length    = in->width / 2;
     int maximum_join_gap       = in->width / 10;
     lines = cvHoughLines2(hough_image, storage, CV_HOUGH_PROBABILISTIC,  distance_resolution, angle_resolution, threshold, minimum_line_length, maximum_join_gap);
+
     cvReleaseImage(&hough_image);
 
     double most_horizontal = INFINITY;
@@ -166,7 +166,7 @@ const CvPoint2D32f* locate_puzzle(IplImage *in) {
             slope = dy / dx;
         }
 
-        //cvLine(in, line[0], line[1], CV_RGB(255, 255, 255), 1, 8, 0);
+        cvLine(*annotated, line[0], line[1], CV_RGB(255, 255, 255), 1, 8, 0);
         if (abs(slope - most_horizontal) <= 1) {
             if ((top == -1) || (line[1].y < ((CvPoint*)cvGetSeqElem(lines,top))[1].y)) {
                 top = i;
@@ -189,45 +189,43 @@ const CvPoint2D32f* locate_puzzle(IplImage *in) {
     }
 
     CvPoint *top_line    = (CvPoint*)cvGetSeqElem(lines,top);
-    cvLine(in, top_line[0], top_line[1], CV_RGB(0, 0, 255), 1, 0, 0);
+    cvLine(*annotated, top_line[0], top_line[1], CV_RGB(0, 0, 255), 6, 8, 0);
 
     CvPoint *bottom_line = (CvPoint*)cvGetSeqElem(lines,bottom);
-    cvLine(in, bottom_line[0], bottom_line[1], CV_RGB(0, 255, 255), 1, 0, 0);
+    cvLine(*annotated, bottom_line[0], bottom_line[1], CV_RGB(0, 255, 255), 6, 8, 0);
 
     CvPoint *left_line   = (CvPoint*)cvGetSeqElem(lines,left);
-    cvLine(in, left_line[0], left_line[1], CV_RGB(0, 255, 0), 1, 0, 0);
+    cvLine(*annotated, left_line[0], left_line[1], CV_RGB(0, 255, 0), 6, 8, 0);
 
     CvPoint *right_line  = (CvPoint*)cvGetSeqElem(lines,right);
-    cvLine(in, right_line[0], right_line[1], CV_RGB(255, 0, 0), 1, 0, 0);
+    cvLine(*annotated, right_line[0], right_line[1], CV_RGB(255, 0, 0), 6, 8, 0);
 
     CvPoint2D32f *coordinates;
     coordinates = malloc(sizeof(CvPoint2D32f) * 4);
 
     // top left
     intersect(top_line, left_line, &(coordinates[0]));
-    //cvLine(in, cvPointFrom32f(coordinates[0]), cvPointFrom32f(coordinates[0]), CV_RGB(255, 255, 255), 3);
+    cvLine(*annotated, cvPointFrom32f(coordinates[0]), cvPointFrom32f(coordinates[0]), CV_RGB(255, 255, 0), 10, 8, 0);
 
     //printf("top_left: %.0f, %.0f\n", coordinates[0].x, coordinates[0].y);
 
     // top right
     intersect(top_line, right_line, &(coordinates[1]));
-    //cvLine(in, cvPointFrom32f(coordinates[1]), cvPointFrom32f(coordinates[1]), CV_RGB(255, 255, 255), 3);
+    cvLine(*annotated, cvPointFrom32f(coordinates[1]), cvPointFrom32f(coordinates[1]), CV_RGB(255, 255, 0), 10, 8, 0);
 
     //printf("top_right: %.0f, %.0f\n", coordinates[1].x, coordinates[1].y);
 
     // bottom right
     intersect(bottom_line, right_line, &(coordinates[2]));
-    //cvLine(in, cvPointFrom32f(coordinates[2]), cvPointFrom32f(coordinates[2]), CV_RGB(255, 255, 255), 3);
+    cvLine(*annotated, cvPointFrom32f(coordinates[2]), cvPointFrom32f(coordinates[2]), CV_RGB(255, 255, 0), 10, 8, 0);
 
     //printf("bottom_right: %.0f, %.0f\n", coordinates[2].x, coordinates[2].y);
 
     // bottom left
     intersect(bottom_line, left_line, &(coordinates[3]));
-    //cvLine(in, cvPointFrom32f(coordinates[3]), cvPointFrom32f(coordinates[3]), CV_RGB(255, 255, 255), 3);
+    cvLine(*annotated, cvPointFrom32f(coordinates[3]), cvPointFrom32f(coordinates[3]), CV_RGB(255, 255, 0), 10, 8, 0);
 
     //printf("bottom_left: %.0f, %.0f\n", coordinates[3].x, coordinates[3].y);
-    //cvNamedWindow("hough", 1);
-    //showSmaller(in, "hough");
 
     return coordinates;
 }

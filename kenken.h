@@ -4,7 +4,7 @@
 #include "cv.h"
 #include "highgui.h"
 
-const CvPoint2D32f* locate_puzzle(IplImage *in);
+const CvPoint2D32f* locate_puzzle(IplImage *in, IplImage **annotated);
 
 IplImage *square_puzzle(IplImage *in, const CvPoint2D32f *location);
 
