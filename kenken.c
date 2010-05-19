@@ -268,7 +268,7 @@ puzzle_size compute_puzzle_size(IplImage *puzzle, IplImage **annotated) {
     puzzle_size guesses[PUZZLE_SIZE_MAX - PUZZLE_SIZE_MIN + 1];
     unsigned long means[PUZZLE_SIZE_MAX + 1];
 
-    const int fuzz = 11;
+    const int fuzz = threshold_image->width / 80;
     for (puzzle_size guess_size = PUZZLE_SIZE_MIN; guess_size <= PUZZLE_SIZE_MAX; ++guess_size) {
         guesses[guess_id++] = guess_size;
         means[guess_size] = 0;
