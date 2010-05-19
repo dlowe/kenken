@@ -1,4 +1,5 @@
 #include <stdarg.h>
+#include <getopt.h>
 
 #include "cv.h"
 #include "highgui.h"
@@ -80,9 +81,28 @@ static unsigned short is_fail_node(yaml_node_t *node) {
     return 0;
 }
 
+static void usage(void) {
+    fprintf(stderr, "usage: ./test_locate_puzzle [ --show_annotations ]\n");
+    exit(255);
+}
+
+static struct option options[] = {
+    { "show_annotations", no_argument, NULL, 's' },
+};
+
 char *DEFAULT_CAGES = "";
 int main (int argc, char** argv) {
-    unsigned short show_annotations = 1;
+    unsigned short show_annotations = 0;
+    char ch;
+    while ((ch = getopt_long(argc, argv, "s", options, NULL)) != -1) {
+        switch (ch) {
+            case 's':
+                show_annotations = 1;
+                break;
+            default:
+                usage();
+        }
+    }
 
     yaml_parser_t parser;
     yaml_document_t document;
@@ -199,6 +219,7 @@ int main (int argc, char** argv) {
         IplImage *locate_puzzle_annotated;
         const CvPoint2D32f *actual_location = locate_puzzle(color_image, &locate_puzzle_annotated);
 
+        unsigned int before_failures = fail_n;
         if (ok(actual_location != NULL, "%s: puzzle found", test_case.image)) {
             for (int i = 0; i < 4; ++i) {
                 ok(abs(actual_location[i].x - test_case.puzzle_location[i].x) < LOCATION_FUZZ, "%s: point %d: x=%.0f, expecting %d", test_case.image, i, actual_location[i].x, test_case.puzzle_location[i].x);
@@ -206,14 +227,14 @@ int main (int argc, char** argv) {
             }
         }
 
-        if (show_annotations) {
+        if (show_annotations || (before_failures != fail_n)) {
             char *window_name = malloc(strlen("locate_puzzle ") + strlen(test_case.image) + 1);
             sprintf(window_name, "locate_puzzle %s", test_case.image);
             cvNamedWindow(window_name, 1);
             showSmaller(locate_puzzle_annotated, window_name);
         }
 
-        if (fail_n) {
+        if (before_failures != fail_n) {
             cvNamedWindow("result", 1);
 
             // expected
@@ -245,17 +266,18 @@ int main (int argc, char** argv) {
 
         IplImage *compute_puzzle_size_annotated;
 
+        before_failures = fail_n;
         puzzle_size actual_size = compute_puzzle_size(squared_puzzle, &compute_puzzle_size_annotated);
         ok(actual_size == test_case.size, "%s: size=%d, expecting %d", test_case.image, actual_size, test_case.size);
 
-        if (show_annotations) {
+        if (show_annotations || (before_failures != fail_n)) {
             char *window_name = malloc(strlen("compute_puzzle_size ") + strlen(test_case.image) + 1);
             sprintf(window_name, "compute_puzzle_size %s", test_case.image);
             cvNamedWindow(window_name, 1);
             showSmaller(compute_puzzle_size_annotated, window_name);
         }
 
-        if (fail_n) {
+        if (before_failures != fail_n) {
             cvNamedWindow("result", 1);
 
             // expected
@@ -306,18 +328,18 @@ int main (int argc, char** argv) {
         }
 
         IplImage *compute_puzzle_cages_annotated;
+        before_failures = fail_n;
         char *actual_cages = compute_puzzle_cages(squared_puzzle, actual_size, &compute_puzzle_cages_annotated);
+        ok(strcmp(actual_cages, test_case.cages) == 0, "%s: cages=%s, expecting %s", test_case.image, actual_cages, test_case.cages);
 
-        if (show_annotations) {
+        if (show_annotations || (before_failures != fail_n)) {
             char *window_name = malloc(strlen("compute_puzzle_cages ") + strlen(test_case.image) + 1);
             sprintf(window_name, "compute_puzzle_cages %s", test_case.image);
             cvNamedWindow(window_name, 1);
             showSmaller(compute_puzzle_cages_annotated, window_name);
         }
 
-        ok(strcmp(actual_cages, test_case.cages) == 0, "%s: cages=%s, expecting %s", test_case.image, actual_cages, test_case.cages);
-
-        if (fail_n) {
+        if (before_failures != fail_n) {
             cvNamedWindow("expected", 1);
             cvNamedWindow("actual", 1);
 
