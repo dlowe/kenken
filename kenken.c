@@ -472,7 +472,15 @@ char *compute_puzzle_cages(IplImage *puzzle, puzzle_size size, IplImage **annota
 }
 
 void showSmaller (IplImage *in, char *window_name) {
-    IplImage *smaller = cvCreateImage(cvSize(in->width / 2, in->height / 2), 8, in->nChannels);
+    double factor = 1;
+    if (in->height > 1000) {
+        factor = 1000 / in->height;
+    }
+
+    int width = (int)(in->width * factor);
+    int height = (int)(in->height * factor);
+
+    IplImage *smaller = cvCreateImage(cvSize(width, height), 8, in->nChannels);
     cvResize(in, smaller, CV_INTER_LINEAR);
     cvShowImage(window_name, smaller);
     cvReleaseImage(&smaller);
