@@ -473,8 +473,8 @@ char *compute_puzzle_cages(IplImage *puzzle, puzzle_size size, IplImage **annota
 
 void showSmaller (IplImage *in, char *window_name) {
     double factor = 1;
-    if (in->height > 1000) {
-        factor = 1000 / in->height;
+    if (in->height > 700.) {
+        factor = 700. / in->height;
     }
 
     int width = (int)(in->width * factor);
