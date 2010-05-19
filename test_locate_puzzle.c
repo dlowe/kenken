@@ -96,6 +96,7 @@ static struct option options[] = {
     { "show_annotations", no_argument,       NULL, 's' },
     { "image",            required_argument, NULL, 'i' },
     { "all",              no_argument,       NULL, 'a' },
+    { "blind",            no_argument,       NULL, 'b' },
 };
 
 char *DEFAULT_CAGES = "";
@@ -103,6 +104,7 @@ int main (int argc, char** argv) {
     char *specific_image = NULL;
     unsigned short show_annotations = 0;
     unsigned short all = 0;
+    unsigned short blind = 0;
     char ch;
     while ((ch = getopt_long(argc, argv, "s", options, NULL)) != -1) {
         switch (ch) {
@@ -114,6 +116,9 @@ int main (int argc, char** argv) {
                 break;
             case 'a':
                 all = 1;
+                break;
+            case 'b':
+                blind = 1;
                 break;
             default:
                 usage();
@@ -246,6 +251,7 @@ int main (int argc, char** argv) {
             }
         }
 
+        if (! blind) {
         if (show_annotations || (before_failures != fail_n)) {
             char *window_name = wname("locate_puzzle", test_case.image);
             cvNamedWindow(window_name, 1);
@@ -277,6 +283,7 @@ int main (int argc, char** argv) {
                 exit(fail_n);
             }
         }
+        }
 
         if (test_case.size_fail) {
             continue;
@@ -290,6 +297,7 @@ int main (int argc, char** argv) {
         puzzle_size actual_size = compute_puzzle_size(squared_puzzle, &compute_puzzle_size_annotated);
         ok(actual_size == test_case.size, "%s: size=%d, expecting %d", test_case.image, actual_size, test_case.size);
 
+        if (! blind) {
         if (show_annotations || (before_failures != fail_n)) {
             char *window_name = wname("compute_puzzle_size", test_case.image);
             cvNamedWindow(window_name, 1);
@@ -343,6 +351,7 @@ int main (int argc, char** argv) {
                 exit(fail_n);
             }
         }
+        }
 
         if (test_case.cages_fail) {
             continue;
@@ -353,6 +362,7 @@ int main (int argc, char** argv) {
         char *actual_cages = compute_puzzle_cages(squared_puzzle, actual_size, &compute_puzzle_cages_annotated);
         ok(strcmp(actual_cages, test_case.cages) == 0, "%s: cages=%s, expecting %s", test_case.image, actual_cages, test_case.cages);
 
+        if (! blind) {
         if (show_annotations || (before_failures != fail_n)) {
             char *window_name = wname("compute_puzzle_cages", test_case.image);
             cvNamedWindow(window_name, 1);
@@ -373,11 +383,12 @@ int main (int argc, char** argv) {
                 exit(fail_n);
             }
         }
+        }
     }
 
     yaml_document_delete(&document);
 
-    if ((show_annotations) || (fail_n)) {
+    if ((! blind) && ((show_annotations) || (fail_n))) {
         cvWaitKey(0);
     }
 
