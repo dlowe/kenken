@@ -10,7 +10,7 @@ IplImage *square_puzzle(IplImage *in, const CvPoint2D32f *location);
 
 typedef unsigned short puzzle_size;
 
-puzzle_size compute_puzzle_size(IplImage *puzzle);
+puzzle_size compute_puzzle_size(IplImage *puzzle, IplImage **annotated);
 
 char *compute_puzzle_cages(IplImage *puzzle, puzzle_size size);
 

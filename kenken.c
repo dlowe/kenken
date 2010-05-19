@@ -257,8 +257,10 @@ static int _compare_means(void *means, const void *guess_a, const void *guess_b)
 enum { PUZZLE_SIZE_MIN = 3 };
 enum { PUZZLE_SIZE_MAX = 9 };
 
-puzzle_size compute_puzzle_size(IplImage *puzzle) {
+puzzle_size compute_puzzle_size(IplImage *puzzle, IplImage **annotated) {
     IplImage *threshold_image = _threshold(puzzle);
+
+    *annotated = cvCloneImage(puzzle);
 
     // the logic here is to "rank" the possible sizes, by computing the average pixel intensity
     // in the vicinity of where the lines should be.
@@ -270,6 +272,7 @@ puzzle_size compute_puzzle_size(IplImage *puzzle) {
     for (puzzle_size guess_size = PUZZLE_SIZE_MIN; guess_size <= PUZZLE_SIZE_MAX; ++guess_size) {
         guesses[guess_id++] = guess_size;
         means[guess_size] = 0;
+
         for (unsigned short i = 1; i < guess_size; ++i) {
             int center = i * (threshold_image->width / guess_size);
             for (int x = 0; x < threshold_image->width; ++x) {
@@ -286,26 +289,29 @@ puzzle_size compute_puzzle_size(IplImage *puzzle) {
             }
         }
         means[guess_size] /= (guess_size - 1);
-        //cvNamedWindow("thresh", 1);
-        //showSmaller(threshold_image, "thresh");
     }
-    cvReleaseImage(&threshold_image);
 
     qsort_r(guesses, sizeof(guesses) / sizeof(puzzle_size), sizeof(puzzle_size), (void *)means, _compare_means);
 
-    //for (int i = 0; i < 7; ++i) {
-        //printf("%d: %lu\n", guesses[i], means[guesses[i]]);
-    //}
+    puzzle_size size = guesses[0];
 
     // evenly divisible sizes are easily confused. Err on the side of the larger size puzzle.
     puzzle_size confusable[][2] = { { 4, 8 }, { 3, 9 }, { 3, 6 } };
     for (int i = 0; i < (sizeof(confusable) / sizeof(puzzle_size) / 2); ++i) {
         if ((guesses[0] == confusable[i][0]) && (guesses[1] == confusable[i][1]) && (means[guesses[0]] - means[guesses[1]] < means[guesses[1]] - means[guesses[2]])) {
-            return confusable[i][1];
+            size = confusable[i][1];
+            break;
         }
     }
 
-    return guesses[0];
+    for (unsigned short i = 1; i < size; ++i) {
+        int center = i * (threshold_image->width / size);
+        cvRectangle(*annotated, cvPoint(0, center - fuzz), cvPoint(threshold_image->width, center + fuzz), CV_RGB(255, 0, 0), 2, 8, 0);
+        cvRectangle(*annotated, cvPoint(center - fuzz, 0), cvPoint(center + fuzz, threshold_image->height), CV_RGB(255, 0, 0), 2, 8, 0);
+    }
+    cvReleaseImage(&threshold_image);
+
+    return size;
 }
 
 typedef enum {

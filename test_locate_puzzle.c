@@ -243,8 +243,17 @@ int main (int argc, char** argv) {
 
         IplImage *squared_puzzle = square_puzzle(color_image, actual_location);
 
-        puzzle_size actual_size = compute_puzzle_size(squared_puzzle);
+        IplImage *compute_puzzle_size_annotated;
+
+        puzzle_size actual_size = compute_puzzle_size(squared_puzzle, &compute_puzzle_size_annotated);
         ok(actual_size == test_case.size, "%s: size=%d, expecting %d", test_case.image, actual_size, test_case.size);
+
+        if (show_annotations) {
+            char *window_name = malloc(strlen("compute_puzzle_size ") + strlen(test_case.image) + 1);
+            sprintf(window_name, "compute_puzzle_size %s", test_case.image);
+            cvNamedWindow(window_name, 1);
+            showSmaller(compute_puzzle_size_annotated, window_name);
+        }
 
         if (fail_n) {
             cvNamedWindow("result", 1);
