@@ -352,10 +352,14 @@ static void _explore_cage(int cage_id, int box_x, int box_y, int cage_ids[PUZZLE
     return;
 }
 
-static CvScalar _getpixel(IplImage *threshold_image, border_direction d, int across, int along) {
+static CvScalar _getpixel(IplImage *threshold_image, IplImage **annotated, border_direction d, int across, int along) {
+    CvScalar gray;
+    gray.val[0] = 128;
     if (d == BOTTOM) {
+        cvSet2D(*annotated, across, along, gray);
         return cvGet2D(threshold_image, across, along);
     }
+    cvSet2D(*annotated, along, across, gray);
     return cvGet2D(threshold_image, along, across);
 }
 
@@ -366,7 +370,7 @@ static short *_getborder(short cage_borders[PUZZLE_SIZE_MAX][PUZZLE_SIZE_MAX][4]
     return &(cage_borders[across][along][d]);
 }
 
-static void _find_cage_borders(IplImage *threshold_image, puzzle_size size, border_direction direction, border_direction opposite, short cage_borders[PUZZLE_SIZE_MAX][PUZZLE_SIZE_MAX][4]) {
+static void _find_cage_borders(IplImage *threshold_image, IplImage **annotated, puzzle_size size, border_direction direction, border_direction opposite, short cage_borders[PUZZLE_SIZE_MAX][PUZZLE_SIZE_MAX][4]) {
     assert(threshold_image->height == threshold_image->width);
 
     int px_size = threshold_image->height;
@@ -388,7 +392,7 @@ static void _find_cage_borders(IplImage *threshold_image, puzzle_size size, bord
             long total = 0;
             for (int across = across_center - fuzz_across; across <= across_center + fuzz_across; ++across) {
                 for (int along = along_center - fuzz_along; along <= along_center + fuzz_along; ++along) {
-                    CvScalar s = _getpixel(threshold_image, direction, across, along);
+                    CvScalar s = _getpixel(threshold_image, annotated, direction, across, along);
                     total += s.val[0];
                 }
             }
@@ -424,16 +428,15 @@ static void _find_cage_borders(IplImage *threshold_image, puzzle_size size, bord
     return;
 }
 
-char *compute_puzzle_cages(IplImage *puzzle, puzzle_size size) {
+char *compute_puzzle_cages(IplImage *puzzle, puzzle_size size, IplImage **annotated) {
     IplImage *threshold_image = _threshold(puzzle);
+
+    *annotated = cvCloneImage(threshold_image);
 
     short cage_borders[PUZZLE_SIZE_MAX][PUZZLE_SIZE_MAX][4];
 
-    _find_cage_borders(threshold_image, size, RIGHT, LEFT, cage_borders);
-    _find_cage_borders(threshold_image, size, BOTTOM, TOP, cage_borders);
-
-    //cvNamedWindow("thresh", 1);
-    //showSmaller(threshold_image, "thresh");
+    _find_cage_borders(threshold_image, annotated, size, RIGHT, LEFT, cage_borders);
+    _find_cage_borders(threshold_image, annotated, size, BOTTOM, TOP, cage_borders);
 
     int cage_ids[PUZZLE_SIZE_MAX][PUZZLE_SIZE_MAX];
     for (int box_x = 0; box_x < size; ++box_x) {

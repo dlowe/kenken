@@ -305,7 +305,16 @@ int main (int argc, char** argv) {
             continue;
         }
 
-        char *actual_cages = compute_puzzle_cages(squared_puzzle, actual_size);
+        IplImage *compute_puzzle_cages_annotated;
+        char *actual_cages = compute_puzzle_cages(squared_puzzle, actual_size, &compute_puzzle_cages_annotated);
+
+        if (show_annotations) {
+            char *window_name = malloc(strlen("compute_puzzle_cages ") + strlen(test_case.image) + 1);
+            sprintf(window_name, "compute_puzzle_cages %s", test_case.image);
+            cvNamedWindow(window_name, 1);
+            showSmaller(compute_puzzle_cages_annotated, window_name);
+        }
+
         ok(strcmp(actual_cages, test_case.cages) == 0, "%s: cages=%s, expecting %s", test_case.image, actual_cages, test_case.cages);
 
         if (fail_n) {

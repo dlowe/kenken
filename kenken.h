@@ -12,7 +12,7 @@ typedef unsigned short puzzle_size;
 
 puzzle_size compute_puzzle_size(IplImage *puzzle, IplImage **annotated);
 
-char *compute_puzzle_cages(IplImage *puzzle, puzzle_size size);
+char *compute_puzzle_cages(IplImage *puzzle, puzzle_size size, IplImage **annotated);
 
 void showSmaller (IplImage *in, char *window_name);
 
