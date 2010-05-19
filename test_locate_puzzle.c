@@ -81,23 +81,39 @@ static unsigned short is_fail_node(yaml_node_t *node) {
     return 0;
 }
 
+static char *wname(char *prefix, char *name) {
+    char *window_name = malloc(strlen(prefix) + strlen(name) + 3);
+    sprintf(window_name, "%s: %s", prefix, name);
+    return window_name;
+}
+
 static void usage(void) {
     fprintf(stderr, "usage: ./test_locate_puzzle [ --show_annotations ]\n");
     exit(255);
 }
 
 static struct option options[] = {
-    { "show_annotations", no_argument, NULL, 's' },
+    { "show_annotations", no_argument,       NULL, 's' },
+    { "image",            required_argument, NULL, 'i' },
+    { "all",              no_argument,       NULL, 'a' },
 };
 
 char *DEFAULT_CAGES = "";
 int main (int argc, char** argv) {
+    char *specific_image = NULL;
     unsigned short show_annotations = 0;
+    unsigned short all = 0;
     char ch;
     while ((ch = getopt_long(argc, argv, "s", options, NULL)) != -1) {
         switch (ch) {
             case 's':
                 show_annotations = 1;
+                break;
+            case 'i':
+                specific_image = optarg;
+                break;
+            case 'a':
+                all = 1;
                 break;
             default:
                 usage();
@@ -206,6 +222,9 @@ int main (int argc, char** argv) {
             printf("incomplete test case (missing 'image')\n");
             exit(255);
         }
+        if ((specific_image != NULL) && (strcmp(specific_image, test_case.image) != 0)) {
+            continue;
+        }
         if (test_case.cages == NULL) {
             test_case.cages = DEFAULT_CAGES;
         }
@@ -228,14 +247,14 @@ int main (int argc, char** argv) {
         }
 
         if (show_annotations || (before_failures != fail_n)) {
-            char *window_name = malloc(strlen("locate_puzzle ") + strlen(test_case.image) + 1);
-            sprintf(window_name, "locate_puzzle %s", test_case.image);
+            char *window_name = wname("locate_puzzle", test_case.image);
             cvNamedWindow(window_name, 1);
             showSmaller(locate_puzzle_annotated, window_name);
         }
 
         if (before_failures != fail_n) {
-            cvNamedWindow("result", 1);
+            char *window_name = wname("locate_puzzle result", test_case.image);
+            cvNamedWindow(window_name, 1);
 
             // expected
             cvLine(color_image, test_case.puzzle_location[0], test_case.puzzle_location[1], CV_RGB(0,255,0), 1, 8, 0);
@@ -251,11 +270,12 @@ int main (int argc, char** argv) {
                 cvLine(color_image, cvPointFrom32f(actual_location[3]), cvPointFrom32f(actual_location[0]), CV_RGB(255,0,0), 1, 8, 0);
             }
 
-            showSmaller(color_image, "result");
+            showSmaller(color_image, window_name);
 
-            cvWaitKey(0);
-            cvDestroyWindow("result");
-            exit(fail_n);
+            if (! all) {
+                cvWaitKey(0);
+                exit(fail_n);
+            }
         }
 
         if (test_case.size_fail) {
@@ -271,14 +291,14 @@ int main (int argc, char** argv) {
         ok(actual_size == test_case.size, "%s: size=%d, expecting %d", test_case.image, actual_size, test_case.size);
 
         if (show_annotations || (before_failures != fail_n)) {
-            char *window_name = malloc(strlen("compute_puzzle_size ") + strlen(test_case.image) + 1);
-            sprintf(window_name, "compute_puzzle_size %s", test_case.image);
+            char *window_name = wname("compute_puzzle_size", test_case.image);
             cvNamedWindow(window_name, 1);
             showSmaller(compute_puzzle_size_annotated, window_name);
         }
 
         if (before_failures != fail_n) {
-            cvNamedWindow("result", 1);
+            char *window_name = wname("compute_puzzle_size result", test_case.image);
+            cvNamedWindow(window_name, 1);
 
             // expected
             for (int i = 1; i < test_case.size; ++i) {
@@ -316,11 +336,12 @@ int main (int argc, char** argv) {
                 cvLine(squared_puzzle, vertical[0], vertical[1], CV_RGB(255,0,0), 4, 8, 0);
             }
 
-            showSmaller(squared_puzzle, "result");
+            showSmaller(squared_puzzle, window_name);
 
-            cvWaitKey(0);
-            cvDestroyWindow("result");
-            exit(fail_n);
+            if (! all) {
+                cvWaitKey(0);
+                exit(fail_n);
+            }
         }
 
         if (test_case.cages_fail) {
@@ -333,29 +354,30 @@ int main (int argc, char** argv) {
         ok(strcmp(actual_cages, test_case.cages) == 0, "%s: cages=%s, expecting %s", test_case.image, actual_cages, test_case.cages);
 
         if (show_annotations || (before_failures != fail_n)) {
-            char *window_name = malloc(strlen("compute_puzzle_cages ") + strlen(test_case.image) + 1);
-            sprintf(window_name, "compute_puzzle_cages %s", test_case.image);
+            char *window_name = wname("compute_puzzle_cages", test_case.image);
             cvNamedWindow(window_name, 1);
             showSmaller(compute_puzzle_cages_annotated, window_name);
         }
 
         if (before_failures != fail_n) {
-            cvNamedWindow("expected", 1);
-            cvNamedWindow("actual", 1);
+            char *expected_window_name = wname("compute_puzzle_cages expected", test_case.image);
+            char *actual_window_name = wname("compute_puzzle_cages actual", test_case.image);
+            cvNamedWindow(expected_window_name, 1);
+            cvNamedWindow(actual_window_name, 1);
 
-            show_with_cages(squared_puzzle, actual_size, test_case.cages, "expected");
-            show_with_cages(squared_puzzle, actual_size, actual_cages, "actual");
+            show_with_cages(squared_puzzle, actual_size, test_case.cages, expected_window_name);
+            show_with_cages(squared_puzzle, actual_size, actual_cages, actual_window_name);
 
-            cvWaitKey(0);
-            cvDestroyWindow("actual");
-            cvDestroyWindow("expected");
-            exit(fail_n);
+            if (! all) {
+                cvWaitKey(0);
+                exit(fail_n);
+            }
         }
     }
 
     yaml_document_delete(&document);
 
-    if (show_annotations) {
+    if ((show_annotations) || (fail_n)) {
         cvWaitKey(0);
     }
 

@@ -14,7 +14,7 @@
 - image: test/IMG_0718.PNG
   puzzle_location: [ [ 16, 66 ], [ 308, 66 ], [ 298, 357 ], [ 16, 346 ] ]
   size: 3
-  cages: fail ABCDBCDEE
+  cages: ABCDBCDEE
 - image: test/IMG_0719.PNG
   puzzle_location: [ [ 32, 97 ], [ 286, 97 ], [ 286, 346 ], [ 32, 346 ] ]
   size: 3
@@ -28,13 +28,13 @@
 
 # locate failures
 - image: test/IMG_0675.JPG
-  puzzle_location: fail finding left border [ [ 51, 413 ], [ 1063, 431 ], [ 1044, 1489 ], [ 33, 1348 ] ]
+  puzzle_location: [ [ 51, 413 ], [ 1063, 431 ], [ 1044, 1489 ], [ 33, 1348 ] ]
 
 # cage failures...
 - image: test/IMG_0707.JPG
   puzzle_location: [ [ 146, 461 ], [ 1013, 431 ], [ 983, 1374 ], [ 120, 1302 ] ]
   size: 4
-  cages: fail due to shadow AABBCDBBCDEEFFFE
+  cages: AABBCDBBCDEEFFFE
 - image: test/IMG_0664.JPG
   puzzle_location: [ [ 109, 377 ], [ 1085, 319 ], [ 1175, 1402 ], [ 109, 1402 ] ]
   size: 8
@@ -96,15 +96,15 @@
 - image: test/IMG_0676.JPG
   puzzle_location: [ [ 72, 332 ], [ 1085, 294 ], [ 1164, 1421 ], [ 72, 1421 ] ]
   size: 7
-  cages: fail AABCDDEABBCDDEFFGCGHHIIGGGJJIKKGLLLIKKMMLLNNOOOPP
+  cages: ABCDDEABBCDDEFFGCGHHIIGGGJJIKKGLLLIKKMMLLNNOOOPP
 - image: test/IMG_0671.JPG
   puzzle_location: [ [ 134, 416 ], [ 1108, 449 ], [ 1053, 1520 ], [ 55, 1382 ] ]
   size: 8
-  cages: fail due to curvature AABCDDEFGABCCCEFHHHIIJJKLLMNIOOKPPMNNOOQRRRSSTTQUUVVVVWXUUVVYYWX
+  cages: AABCDDEFGABCCCEFHHHIIJJKLLMNIOOKPPMNNOOQRRRSSTTQUUVVVVWXUUVVYYWX
 - image: test/IMG_0668.JPG
   puzzle_location: [ [ 149, 411 ], [ 1117, 394 ], [ 1173, 1463 ], [ 132, 1427 ] ]
   size: 8
-  cages: fail due to curvature ABBCDEEFAGGCDHHFIIJJKKLLMMNOOPQQRRNSSPTTUUVWXYZZaaVWXYbbaaccddbb
+  cages: ABBCDEEFAGGCDHHFIIJJKKLLMMNOOPQQRRNSSPTTUUVWXYZZaaVWXYbbaaccddbb
 - image: test/IMG_0696.JPG
   puzzle_location: [ [ 198, 331 ], [ 1008, 359 ], [ 1037, 1205 ], [ 158, 1175 ] ]
   size: 3
@@ -184,7 +184,7 @@
 - image: test/IMG_0670.JPG
   puzzle_location: [ [ 85, 418 ], [ 1100, 383 ], [ 1179, 1498 ], [ 67, 1478 ] ]
   size: 8
-  cages: fail AABBCDDEFGGCCHHEFIIJJKLLMNNOOPPQMRRSSPTTUVVWWWXXUYYZZaabccddZeeb
+  cages: AABBCDDEFGGCCHHEFIIJJKLLMNNOOPPQMRRSSPTTUVVWWWXXUYYZZaabccddZeeb
 - image: test/IMG_0651.JPG
   puzzle_location: [ [ 176, 420 ], [ 1162, 386 ], [ 1199, 1450 ], [ 158, 1431 ] ]
   size: 6
@@ -192,7 +192,7 @@
 - image: test/IMG_0643.JPG
   puzzle_location: [ [ 94, 426 ], [ 1038, 426 ], [ 1038, 1452 ], [ 37, 1417 ] ]
   size: 6
-  cages: fail ABBCCDABEFGGHIEJKGLIJJKGLMMNOOLPPNOO
+  cages: ABBCCDABEFGGHIEJKGLIJJKGLMMNOOLPPNOO
 - image: test/IMG_0652.JPG
   puzzle_location: [ [ 166, 489 ], [ 1005, 504 ], [ 971, 1456 ], [ 54, 1359 ] ]
   size: 6
@@ -200,15 +200,15 @@
 - image: test/IMG_0654.JPG
   puzzle_location: [ [ 194, 393 ], [ 1055, 453 ], [ 972, 1411 ], [ 35, 1286 ] ]
   size: 6
-  cages: fail AABBCCDEFGHCDEFGHIJKKGLMJNKOPMQNRRPM
+  cages: AABBCCDEFGHCDEFGHIJKKGLMJNKOPMQNRRPM
 - image: test/IMG_0663.JPG
   puzzle_location: [ [ 140, 366 ], [ 1150, 313 ], [ 1150, 1425 ], [ 86, 1369 ] ]
   size: 9
-  cages: fail AABBBCCDDEAFBGHHIDEEFFGHIIJKKKLMMNNJOPPLQQRRJOSSTTTUUJVVWWXYZZJVaWbXYYZcaabbbddZc
+  cages: AABBBCCDDEAFBGHHIDEEFFGHIIJKKKLMMNNJOPPLQQRRJOSSTTTUUJVVWWXYZZJVaWbXYYZcaabbbddZc
 - image: test/IMG_0673.JPG
   puzzle_location: [ [ 105, 388 ], [ 1067, 371 ], [ 1048, 1449 ], [ 39, 1343 ] ]
   size: 7
-  cages: fail ABBBCCDABEEECDFGGHIIJFKGHILJMKNNLLOMPQQQROMPSSSRO
+  cages: ABBBCCDABEEECDFGGHIIJFKGHILJMKNNLLOMPQQQROMPSSSRO
 - image: test/IMG_0642.JPG
   puzzle_location: [ [ 214, 440 ], [ 1148, 408 ], [ 1141, 1443 ], [ 167, 1360 ] ]
   size: 6
@@ -216,15 +216,15 @@
 - image: test/IMG_0677.JPG
   puzzle_location: [ [ 110, 371 ], [ 1060, 361 ], [ 1042, 1434 ], [ 53, 1305 ] ]
   size: 7
-  cages: fail ABCCDDEABFGGHEIFFGHHJIKKLMMJINNOPPJQRNOPPSQRTTUUS
+  cages: ABCCDDEABFGGHEIFFGHHJIKKLMMJINNOPPJQRNOPPSQRTTUUS
 - image: test/IMG_0665.JPG
   puzzle_location: [ [ 216, 412 ], [ 1125, 447 ], [ 1073, 1443 ], [ 105, 1326 ] ]
   size: 8
-  cages: fail AABCCDDDEFBGGHHIEFFGJJIIKFLGMMNOKPLQRRNOKPPQSSTTKPUVVWWTXXUYYZZZ
+  cages: AABCCDDDEFBGGHHIEFFGJJIIKFLGMMNOKPLQRRNOKPPQSSTTKPUVVWWTXXUYYZZZ
 - image: test/IMG_0653.JPG
   puzzle_location: [ [ 137, 378 ], [ 1147, 361 ], [ 1185, 1438 ], [ 100, 1438 ] ]
   size: 6
-  cages: fail AABCDEFFGCDEHIGJKKHILJMMNNLLOPQRRSSP
+  cages: AABCDEFFGCDEHIGJKKHILJMMNNLLOPQRRSSP
 - image: test/IMG_0649.JPG
   puzzle_location: [ [ 76, 354 ], [ 1110, 318 ], [ 1142, 1456 ], [ 40, 1419 ] ]
   size: 6
