@@ -133,6 +133,8 @@ const CvPoint2D32f* locate_puzzle(IplImage *in, IplImage **annotated) {
     int maximum_join_gap       = in->width / 10;
     lines = cvHoughLines2(hough_image, storage, CV_HOUGH_PROBABILISTIC,  distance_resolution, angle_resolution, threshold, minimum_line_length, maximum_join_gap);
 
+    cvCvtColor(hough_image, *annotated, CV_GRAY2RGB);
+
     cvReleaseImage(&hough_image);
 
     double most_horizontal = INFINITY;
@@ -166,7 +168,7 @@ const CvPoint2D32f* locate_puzzle(IplImage *in, IplImage **annotated) {
             slope = dy / dx;
         }
 
-        cvLine(*annotated, line[0], line[1], CV_RGB(255, 255, 255), 1, 8, 0);
+        cvLine(*annotated, line[0], line[1], CV_RGB(255, 0, 0), 1, 8, 0);
         if (abs(slope - most_horizontal) <= 1) {
             if ((top == -1) || (line[1].y < ((CvPoint*)cvGetSeqElem(lines,top))[1].y)) {
                 top = i;
@@ -198,7 +200,7 @@ const CvPoint2D32f* locate_puzzle(IplImage *in, IplImage **annotated) {
     cvLine(*annotated, left_line[0], left_line[1], CV_RGB(0, 255, 0), 6, 8, 0);
 
     CvPoint *right_line  = (CvPoint*)cvGetSeqElem(lines,right);
-    cvLine(*annotated, right_line[0], right_line[1], CV_RGB(255, 0, 0), 6, 8, 0);
+    cvLine(*annotated, right_line[0], right_line[1], CV_RGB(255, 255, 0), 6, 8, 0);
 
     CvPoint2D32f *coordinates;
     coordinates = malloc(sizeof(CvPoint2D32f) * 4);
@@ -261,6 +263,7 @@ puzzle_size compute_puzzle_size(IplImage *puzzle, IplImage **annotated) {
     IplImage *threshold_image = _threshold(puzzle);
 
     *annotated = cvCloneImage(puzzle);
+    cvCvtColor(threshold_image, *annotated, CV_GRAY2RGB);
 
     // the logic here is to "rank" the possible sizes, by computing the average pixel intensity
     // in the vicinity of where the lines should be.
@@ -353,14 +356,23 @@ static void _explore_cage(int cage_id, int box_x, int box_y, int cage_ids[PUZZLE
 }
 
 static CvScalar _getpixel(IplImage *threshold_image, IplImage **annotated, border_direction d, int across, int along) {
-    CvScalar gray;
-    gray.val[0] = 128;
+    CvScalar pixel;
     if (d == BOTTOM) {
-        cvSet2D(*annotated, across, along, gray);
-        return cvGet2D(threshold_image, across, along);
+        pixel = cvGet2D(threshold_image, across, along);
+        if (pixel.val[0] == 0) {
+            cvSet2D(*annotated, across, along, CV_RGB(255, 0, 0));
+        } else {
+            cvSet2D(*annotated, across, along, CV_RGB(0, 0, 255));
+        }
+    } else {
+        pixel = cvGet2D(threshold_image, along, across);
+        if (pixel.val[0] == 0) {
+            cvSet2D(*annotated, along, across, CV_RGB(255, 0, 0));
+        } else {
+            cvSet2D(*annotated, along, across, CV_RGB(0, 0, 255));
+        }
     }
-    cvSet2D(*annotated, along, across, gray);
-    return cvGet2D(threshold_image, along, across);
+    return pixel;
 }
 
 static short *_getborder(short cage_borders[PUZZLE_SIZE_MAX][PUZZLE_SIZE_MAX][4], border_direction d, int across, int along) {
@@ -431,7 +443,8 @@ static void _find_cage_borders(IplImage *threshold_image, IplImage **annotated, 
 char *compute_puzzle_cages(IplImage *puzzle, puzzle_size size, IplImage **annotated) {
     IplImage *threshold_image = _threshold(puzzle);
 
-    *annotated = cvCloneImage(threshold_image);
+    *annotated = cvCloneImage(puzzle);
+    cvCvtColor(threshold_image, *annotated, CV_GRAY2RGB);
 
     short cage_borders[PUZZLE_SIZE_MAX][PUZZLE_SIZE_MAX][4];
 
