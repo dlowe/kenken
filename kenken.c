@@ -84,7 +84,9 @@ static CvSeq *_locate_puzzle_contour(IplImage *in) {
     CvMemStorage* storage = cvCreateMemStorage(0);
     CvSeq* contour = 0;
 
-    cvFindContours( threshold_image, storage, &contour, sizeof(CvContour), CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
+    cvFindContours(threshold_image, storage, &contour, sizeof(CvContour), CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE, cvPoint(0, 0));
+
+    cvReleaseImage(&threshold_image);
 
     double max_area    = fabs(cvContourArea(contour, CV_WHOLE_SEQ));
     CvSeq *max_contour = contour;
@@ -95,10 +97,20 @@ static CvSeq *_locate_puzzle_contour(IplImage *in) {
             max_area    = area;
             max_contour = p;
         }
-        //printf("%f\n", area);
     }
 
     return max_contour;
+}
+
+static IplImage *_grid(IplImage *in) {
+    CvSeq *contour = _locate_puzzle_contour(in);
+
+    // draw the contour onto an otherwise blank image
+    IplImage *grid_image = cvCreateImage(cvGetSize(in), 8, 1);
+    CvScalar color = CV_RGB(255, 255, 255);
+    cvDrawContours(grid_image, contour, color, color, -1, CV_FILLED, 8, cvPoint(0, 0) );
+
+    return grid_image;
 }
 
 static void intersect(CvPoint *a, CvPoint *b, CvPoint2D32f *i) {
@@ -113,14 +125,9 @@ static void intersect(CvPoint *a, CvPoint *b, CvPoint2D32f *i) {
 }
 
 const CvPoint2D32f* locate_puzzle(IplImage *in, IplImage **annotated) {
-    CvSeq *contour = _locate_puzzle_contour(in);
+    IplImage *grid_image = _grid(in);
 
     *annotated = cvCloneImage(in);
-
-    // draw the contour onto an otherwise blank image
-    IplImage *hough_image = cvCreateImage(cvGetSize(in), 8, 1);
-    CvScalar color = CV_RGB(255, 255, 255);
-    cvDrawContours(hough_image, contour, color, color, -1, CV_FILLED, 8, cvPoint(0, 0) );
 
     // find lines using Hough transform
     CvMemStorage* storage = cvCreateMemStorage(0);
@@ -131,11 +138,11 @@ const CvPoint2D32f* locate_puzzle(IplImage *in, IplImage **annotated) {
     int threshold              = 60;
     int minimum_line_length    = in->width / 2;
     int maximum_join_gap       = in->width / 10;
-    lines = cvHoughLines2(hough_image, storage, CV_HOUGH_PROBABILISTIC,  distance_resolution, angle_resolution, threshold, minimum_line_length, maximum_join_gap);
+    lines = cvHoughLines2(grid_image, storage, CV_HOUGH_PROBABILISTIC,  distance_resolution, angle_resolution, threshold, minimum_line_length, maximum_join_gap);
 
-    cvCvtColor(hough_image, *annotated, CV_GRAY2RGB);
+    cvCvtColor(grid_image, *annotated, CV_GRAY2RGB);
 
-    cvReleaseImage(&hough_image);
+    cvReleaseImage(&grid_image);
 
     double most_horizontal = INFINITY;
     for (int i = 0; i < lines->total; ++i) {
@@ -260,7 +267,7 @@ enum { PUZZLE_SIZE_MIN = 3 };
 enum { PUZZLE_SIZE_MAX = 9 };
 
 puzzle_size compute_puzzle_size(IplImage *puzzle, IplImage **annotated) {
-    IplImage *threshold_image = _threshold(puzzle);
+    IplImage *threshold_image = _grid(puzzle);
 
     *annotated = cvCloneImage(puzzle);
     cvCvtColor(threshold_image, *annotated, CV_GRAY2RGB);
@@ -441,7 +448,7 @@ static void _find_cage_borders(IplImage *threshold_image, IplImage **annotated, 
 }
 
 char *compute_puzzle_cages(IplImage *puzzle, puzzle_size size, IplImage **annotated) {
-    IplImage *threshold_image = _threshold(puzzle);
+    IplImage *threshold_image = _grid(puzzle);
 
     *annotated = cvCloneImage(puzzle);
     cvCvtColor(threshold_image, *annotated, CV_GRAY2RGB);
