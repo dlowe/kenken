@@ -40,7 +40,7 @@
   size: 8
   cages: fail due to curvature
 - image: test/IMG_0666.JPG
-  puzzle_location: [ [ 104, 376 ], [ 1118, 341 ], [ 1178, 1467 ], [ 67, 1428 ] ]
+  puzzle_location: [ [ 104, 372 ], [ 1118, 341 ], [ 1178, 1467 ], [ 67, 1428 ] ]
   size: 8
   cages: fail due to curvature
 - image: test/IMG_0674.JPG
@@ -76,7 +76,7 @@
   size: 9
   cages: fail due to curvature
 - image: test/IMG_0658.JPG
-  puzzle_location: [ [ 113, 444 ], [ 1072, 430 ], [ 1072, 1441 ], [ 87, 1389 ] ]
+  puzzle_location: [ [ 116, 444 ], [ 1072, 430 ], [ 1072, 1441 ], [ 87, 1389 ] ]
   size: 9
   cages: fail due to curvature
 - image: test/IMG_0656.JPG
@@ -102,7 +102,7 @@
   size: 8
   cages: AABCDDEFGABCCCEFHHHIIJJKLLMNIOOKPPMNNOOQRRRSSTTQUUVVVVWXUUVVYYWX
 - image: test/IMG_0668.JPG
-  puzzle_location: [ [ 149, 411 ], [ 1117, 394 ], [ 1173, 1463 ], [ 132, 1427 ] ]
+  puzzle_location: [ [ 149, 419 ], [ 1117, 394 ], [ 1173, 1463 ], [ 132, 1427 ] ]
   size: 8
   cages: ABBCDEEFAGGCDHHFIIJJKKLLMMNOOPQQRRNSSPTTUUVWXYZZaaVWXYbbaaccddbb
 - image: test/IMG_0696.JPG
@@ -234,6 +234,6 @@
   size: 6
   cages: ABBCCCDEFGGHDEFIHHJKLIMMJKNNOMJPPQRR
 - image: test/IMG_0645.JPG
-  puzzle_location: [ [ 275, 419 ], [ 1106, 477 ], [ 1041, 1413 ], [ 119, 1293 ] ]
+  puzzle_location: [ [ 275, 419 ], [ 1106, 477 ], [ 1038, 1413 ], [ 119, 1293 ] ]
   size: 6
   cages: ABBCCDEEFFGDEHHIGJKLLIMJKNOOMPQQQRPP
