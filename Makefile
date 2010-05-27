@@ -13,7 +13,7 @@ test_locate_puzzle: $(OBJECTS) test_locate_puzzle.o
 	$(CC) $(CFLAGS) $(OBJECTS) test_locate_puzzle.o -lm -lcv -lhighgui -lcxcore -lyaml -o $@
 
 test: test_locate_puzzle
-	./test_locate_puzzle --all --blind
+	time ./test_locate_puzzle --all --blind
 
 clean:
 	rm -f dependencies.mk
