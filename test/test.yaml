@@ -96,7 +96,7 @@
 - image: test/IMG_0676.JPG
   puzzle_location: [ [ 72, 332 ], [ 1085, 294 ], [ 1164, 1421 ], [ 72, 1421 ] ]
   size: 7
-  cages: ABCDDEABBCDDEFFGCGHHIIGGGJJIKKGLLLIKKMMLLNNOOOPP
+  cages: AABCDDEABBCDDEFFGCGHHIIGGGJJIKKGLLLIKKMMLLNNOOOPP
 - image: test/IMG_0671.JPG
   puzzle_location: [ [ 134, 416 ], [ 1108, 449 ], [ 1053, 1520 ], [ 55, 1382 ] ]
   size: 8
