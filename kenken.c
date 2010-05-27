@@ -26,7 +26,7 @@ static IplImage *_threshold(IplImage *in) {
     //   seem to do better with different values (e.g. contour location is better with smaller numbers,
     //   but cage location is better with larger...) but for now, have been able to settle on value
     //   which works pretty well for most cases.
-    int block_size = (int)(img->width / 10);
+    int block_size = (int)(img->width / 9);
     if ((block_size % 2) == 0) {
         // must be odd
         block_size += 1;
@@ -278,7 +278,7 @@ puzzle_size compute_puzzle_size(IplImage *puzzle, IplImage **annotated) {
     puzzle_size guesses[PUZZLE_SIZE_MAX - PUZZLE_SIZE_MIN + 1];
     unsigned long means[PUZZLE_SIZE_MAX + 1];
 
-    const int fuzz = threshold_image->width / 80;
+    const int fuzz = threshold_image->width / 50;
     for (puzzle_size guess_size = PUZZLE_SIZE_MIN; guess_size <= PUZZLE_SIZE_MAX; ++guess_size) {
         guesses[guess_id++] = guess_size;
         means[guess_size] = 0;

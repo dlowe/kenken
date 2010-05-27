@@ -29,6 +29,8 @@
 # locate failures
 - image: test/IMG_0675.JPG
   puzzle_location: [ [ 51, 413 ], [ 1063, 431 ], [ 1044, 1489 ], [ 33, 1348 ] ]
+  size: 7
+  cages: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 # cage failures...
 - image: test/IMG_0707.JPG
