@@ -397,8 +397,8 @@ static void _find_cage_borders(IplImage *threshold_image, IplImage **annotated, 
     // first figure out, for this puzzle, the difference between a cage border and
     // a regular edge. We'll do this via the mean intensity of the rough location
     // where we expect the edges to be.
-    int fuzz_along  = px_size / (size * 2.6);
-    int fuzz_across = px_size / (size * 5.0);
+    int fuzz_along  = px_size / (size * 3.9);
+    int fuzz_across = px_size / (size * 4.0);
 
     int means[size][size];
     int mean_max = -1;
